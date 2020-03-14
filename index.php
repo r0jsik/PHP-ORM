@@ -1,12 +1,13 @@
 <?php
-require("Source/Database/PDODatabase.php");
+require("Source/Annotation/AnnotationPersistenceResolver.php");
+require("Source/Database/MySQLiDatabase.php");
 require("Source/Database/DatabasePersistenceService.php");
 require("Source/User/Client.php");
 
 
-$database_file = file("mock.db");
-$database = new PDODatabase($database_file);
-$persistence_service = new DatabasePersistenceService($database);
+$database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+$persistence_resolver = new AnnotationPersistenceResolver();
+$persistence_service = new DatabasePersistenceService($database, $persistence_resolver);
 
 $client_1 = new Client("Client name", "Client surname", "+48 123 456 789", "first@client.com");
 $client_2 = new Client("Another user", "Another surname", "+11 999 333 666", "second@client.com");

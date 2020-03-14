@@ -6,12 +6,14 @@
 class Client
 {
     /**
-     * @PrimaryKey
+     * @Column("id")
      * @Type("integer")
+     * @PrimaryKey
      */
     private $id;
 
     /**
+     * @Column("name")
      * @Type("varchar")
      * @Length(32)
      * @NotNull
@@ -19,6 +21,7 @@ class Client
     private $name;
 
     /**
+     * @Column("surname")
      * @Type("varchar")
      * @Length(32)
      * @NotNull
@@ -26,12 +29,14 @@ class Client
     private $surname;
 
     /**
+     * @Column("phone")
      * @Type("varchar")
      * @Length(32)
      */
     private $phone;
 
     /**
+     * @Column("e-mail")
      * @Type("varchar")
      * @Length(32)
      * @Unique
@@ -84,10 +89,5 @@ class Client
     public function setEmail($email)
     {
         $this->email = $email;
-    }
-
-    public function __toString()
-    {
-        return sprintf("Client(name: '%s', surname: '%s', phone: '%s', e-mail: '%s')", $this->name, $this->surname, $this->phone, $this->email);
     }
 }
