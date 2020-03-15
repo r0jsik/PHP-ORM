@@ -1,4 +1,6 @@
 <?php
+namespace Source\Core;
+
 interface PersistenceResolver
 {
     public function resolve_table_name($object) : string;

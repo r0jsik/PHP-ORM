@@ -1,9 +1,14 @@
 <?php
-require("Source/Annotation/AnnotationPersistenceResolver.php");
-require("Source/Database/MySQLiDatabase.php");
-require("Source/Database/DatabasePersistenceService.php");
-require("Source/User/Client.php");
+declare(strict_types=1);
 
+spl_autoload_register(function ($path) {
+    require_once("$path.php");
+});
+
+use Source\Annotation\AnnotationPersistenceResolver;
+use Source\Database\DatabasePersistenceService;
+use Source\Database\MySQLiDatabase;
+use Source\User\Client;
 
 $database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
 $persistence_resolver = new AnnotationPersistenceResolver();

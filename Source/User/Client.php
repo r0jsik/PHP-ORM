@@ -1,4 +1,5 @@
 <?php
+namespace Source\User;
 
 /**
  * @Table("clients")

@@ -1,6 +1,7 @@
 <?php
-require_once("Source/Database/Table/DatabaseTable.php");
+namespace Source\Database\Table;
 
+use mysqli;
 
 class MySQLiDatabaseTable implements DatabaseTable
 {
@@ -8,19 +9,19 @@ class MySQLiDatabaseTable implements DatabaseTable
     private $primary_key_column_name;
     private $mysqli;
 
-    public function __construct($name, $primary_key_column_name, $mysqli)
+    public function __construct(string $name, string $primary_key_column_name, mysqli $mysqli)
     {
         $this->name = $name;
         $this->primary_key_column_name = $primary_key_column_name;
         $this->mysqli = $mysqli;
     }
 
-    public function insert($entry)
+    public function insert(array $entry)
     {
 
     }
 
-    public function update($primary_key_value, $entry)
+    public function update($primary_key_value, array $entry)
     {
 
     }

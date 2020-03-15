@@ -1,7 +1,11 @@
 <?php
+namespace Source\Database;
+
+use Source\Database\Table\DatabaseTable;
+
 interface Database
 {
-    public function table_exists($name) : bool;
-    public function create_table($name, $column_definitions);
-    public function choose_table($name, $primary_key_column_name) : DatabaseTable;
+    public function table_exists(string $name) : bool;
+    public function create_table(string $name, array $column_definitions);
+    public function choose_table(string $name, string $primary_key_column_name) : DatabaseTable;
 }

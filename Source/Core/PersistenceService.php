@@ -1,4 +1,6 @@
 <?php
+namespace Source\Core;
+
 interface PersistenceService
 {
     public function insert($object);

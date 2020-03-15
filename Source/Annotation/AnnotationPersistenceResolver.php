@@ -1,6 +1,7 @@
 <?php
-require_once("Source/Core/PersistenceResolver.php");
+namespace Source\Annotation;
 
+use Source\Core\PersistenceResolver;
 
 class AnnotationPersistenceResolver implements PersistenceResolver
 {
