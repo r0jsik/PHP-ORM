@@ -20,13 +20,24 @@ class MySQLiDatabaseTable implements DatabaseTable
 
     }
 
-    public function update($entry_id, $entry)
+    public function update($primary_key_value, $entry)
     {
 
     }
 
-    public function remove($entry_id, $entry)
+    public function remove($primary_key_value)
     {
+        $query = $this->remove_query($primary_key_value);
+        $query->execute();
+        $query->close();
+    }
 
+    private function remove_query($primary_key_value)
+    {
+        $query = "DELETE FROM {$this->name} WHERE ? = ?;";
+        $query = $this->mysqli->prepare($query);
+        $query->bind_param("ss", $this->primary_key_column_name, $primary_key_value);
+
+        return $query;
     }
 }

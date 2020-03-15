@@ -4,6 +4,6 @@
 interface DatabaseTable
 {
     public function insert($entry);
-    public function update($entry_id, $entry);
-    public function remove($entry_id, $entry);
+    public function update($primary_key_value, $entry);
+    public function remove($primary_key_value);
 }

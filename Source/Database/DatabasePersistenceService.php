@@ -17,19 +17,20 @@ class DatabasePersistenceService implements PersistenceService
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
 
-        if ( !$this->database->table_exists($table_name))
-        {
-            $this->create_table($table_name, $object);
-        }
+        $this->create_table_if_not_exists($table_name, $object);
 
         $table = $this->choose_table($table_name, $object);
-        $table->insert($object);
+        $entry = $this->persistence_resolver->resolve_fields($object);
+        $table->insert($entry);
     }
 
-    private function create_table($table_name, $object)
+    private function create_table_if_not_exists($table_name, $object)
     {
-        $column_descriptions = $this->persistence_resolver->resolve_column_descriptions($object);
-        $this->database->create_table($table_name, $column_descriptions);
+        if ( !$this->database->table_exists($table_name))
+        {
+            $column_definitions = $this->persistence_resolver->resolve_column_definitions($object);
+            $this->database->create_table($table_name, $column_definitions);
+        }
     }
 
     private function choose_table($table_name, $object) : DatabaseTable
@@ -42,11 +43,20 @@ class DatabasePersistenceService implements PersistenceService
 
     public function update($object)
     {
+        $table_name = $this->persistence_resolver->resolve_table_name($object);
+        $primary_key_value = $this->persistence_resolver->resolve_primary_key_value($object);
+        $entry = $this->persistence_resolver->resolve_fields($object);
 
+        $table = $this->choose_table($table_name, $object);
+        $table->update($primary_key_value, $entry);
     }
 
     public function remove($object)
     {
+        $table_name = $this->persistence_resolver->resolve_table_name($object);
+        $primary_key_value = $this->persistence_resolver->resolve_primary_key_value($object);
 
+        $table = $this->choose_table($table_name, $object);
+        $table->remove($primary_key_value);
     }
 }
