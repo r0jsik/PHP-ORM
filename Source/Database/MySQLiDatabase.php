@@ -14,19 +14,16 @@ class MySQLiDatabase implements Database
         $this->database_name = $database_name;
     }
 
-    public function table_exists($name): bool
+    public function table_exists($name) : bool
     {
         $exists = false;
 
-        $query = $this->prepare_table_exists_query($name);
+        $query = $this->table_exists_query($name);
         $query->execute();
 
-        if ($result = $query->get_result())
+        if ($result = $query->get_result()->fetch_assoc())
         {
-            if ($result = $result->fetch_array())
-            {
-                $exists = $result[0];
-            }
+            $exists = $result["flag"];
         }
 
         $query->close();
@@ -34,9 +31,9 @@ class MySQLiDatabase implements Database
         return $exists;
     }
 
-    private function prepare_table_exists_query($table_name) : mysqli_stmt
+    private function table_exists_query($table_name) : mysqli_stmt
     {
-        $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=? AND table_name=?";
+        $query = "SELECT COUNT(*) AS flag FROM information_schema.tables WHERE table_schema=? AND table_name=?";
         $query = $this->mysqli->prepare($query);
         $query->bind_param("ss", $this->database_name, $table_name);
 
@@ -48,8 +45,8 @@ class MySQLiDatabase implements Database
 
     }
 
-    public function choose_table($name): DatabaseTable
+    public function choose_table($name, $primary_key_column_name) : DatabaseTable
     {
-        return new MySQLiDatabaseTable($name, $this->mysqli);
+        return new MySQLiDatabaseTable($name, $primary_key_column_name, $this->mysqli);
     }
 }
