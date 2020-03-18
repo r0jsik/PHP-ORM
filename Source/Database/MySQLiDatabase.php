@@ -18,7 +18,7 @@ class MySQLiDatabase implements Database
         $this->database_name = $database_name;
     }
 
-    public function table_exists(string $name) : bool
+    public function table_exists(string $name): bool
     {
         $exists = null;
 
@@ -33,7 +33,7 @@ class MySQLiDatabase implements Database
         return $exists;
     }
 
-    private function table_exists_query(string $table_name) : mysqli_stmt
+    private function table_exists_query(string $table_name): mysqli_stmt
     {
         $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=? AND table_name=?;";
         $query = $this->mysqli->prepare($query);
@@ -47,7 +47,7 @@ class MySQLiDatabase implements Database
 
     }
 
-    public function choose_table(string $name, string $primary_key_column_name) : DatabaseTable
+    public function choose_table(string $name, string $primary_key_column_name): DatabaseTable
     {
         if ($this->table_exists($name))
         {

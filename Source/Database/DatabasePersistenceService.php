@@ -23,7 +23,7 @@ class DatabasePersistenceService implements PersistenceService
         $this->create_table_if_not_exists($table_name, $object);
 
         $table = $this->choose_table($table_name, $object);
-        $entry = $this->persistence_resolver->resolve_fields($object);
+        $entry = $this->persistence_resolver->resolve_fields_map($object);
         $table->insert($entry);
     }
 
@@ -36,10 +36,10 @@ class DatabasePersistenceService implements PersistenceService
         }
     }
 
-    private function choose_table(string $table_name, $object) : DatabaseTable
+    private function choose_table(string $table_name, $object): DatabaseTable
     {
-        $primary_key_column_name = $this->persistence_resolver->resolve_primary_key_column_name($object);
-        $table = $this->database->choose_table($table_name, $primary_key_column_name);
+        $primary_key = $this->persistence_resolver->resolve_primary_key_name($object);
+        $table = $this->database->choose_table($table_name, $primary_key);
 
         return $table;
     }
@@ -48,7 +48,7 @@ class DatabasePersistenceService implements PersistenceService
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
         $primary_key_value = $this->persistence_resolver->resolve_primary_key_value($object);
-        $entry = $this->persistence_resolver->resolve_fields($object);
+        $entry = $this->persistence_resolver->resolve_fields_map($object);
 
         $table = $this->choose_table($table_name, $object);
         $table->update($primary_key_value, $entry);

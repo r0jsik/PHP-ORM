@@ -2,43 +2,43 @@
 namespace Source\User;
 
 /**
- * @Table("clients")
+ * @Table(clients)
  */
 class Client
 {
     /**
-     * @Column("id")
-     * @Type("integer")
+     * @Column(id)
+     * @Type(integer)
      * @PrimaryKey
      */
     private $id;
 
     /**
-     * @Column("name")
-     * @Type("varchar")
+     * @Column(name)
+     * @Type(varchar)
      * @Length(32)
      * @NotNull
      */
     private $name;
 
     /**
-     * @Column("surname")
-     * @Type("varchar")
+     * @Column(surname)
+     * @Type(varchar)
      * @Length(32)
      * @NotNull
      */
     private $surname;
 
     /**
-     * @Column("phone")
-     * @Type("varchar")
+     * @Column(phone)
+     * @Type(varchar)
      * @Length(32)
      */
     private $phone;
 
     /**
-     * @Column("e-mail")
-     * @Type("varchar")
+     * @Column(e-mail)
+     * @Type(varchar)
      * @Length(32)
      * @Unique
      */
