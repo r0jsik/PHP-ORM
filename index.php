@@ -22,6 +22,9 @@ $client_2 = new Client("Another user", "Another surname", "+11 999 333 666", "se
 // temporary
 $persistence_resolver->resolve_column_definitions($client_1);
 
+$client_1->setId(1);
+$client_2->setId(2);
+
 $persistence_service->insert($client_1);
 $persistence_service->insert($client_2);
 
@@ -32,5 +35,5 @@ $persistence_service->update($client_1);
 $client_2->setName("Updated name");
 $persistence_service->update($client_2);
 
-$persistence_service->remove($client_1);
-$persistence_service->remove($client_2);
+//$persistence_service->remove($client_1);
+//$persistence_service->remove($client_2);

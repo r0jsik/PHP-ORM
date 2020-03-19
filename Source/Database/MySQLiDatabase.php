@@ -47,11 +47,11 @@ class MySQLiDatabase implements Database
 
     }
 
-    public function choose_table(string $name, string $primary_key_column_name): DatabaseTable
+    public function choose_table(string $name, string $primary_key_name): DatabaseTable
     {
         if ($this->table_exists($name))
         {
-            return new MySQLiDatabaseTable($name, $primary_key_column_name, $this->mysqli);
+            return new MySQLiDatabaseTable($name, $primary_key_name, $this->mysqli);
         }
 
         throw new TableNotFoundException();

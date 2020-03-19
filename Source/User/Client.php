@@ -37,7 +37,7 @@ class Client
     private $phone;
 
     /**
-     * @Column(e-mail)
+     * @Column(email)
      * @Type(varchar)
      * @Length(32)
      * @Unique
@@ -50,6 +50,16 @@ class Client
         $this->surname = $surname;
         $this->phone = $phone;
         $this->email = $email;
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
     }
 
     public function getName()
