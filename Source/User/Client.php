@@ -10,6 +10,7 @@ class Client
      * @Column(id)
      * @Type(integer)
      * @PrimaryKey
+     * @Autoincrement
      */
     private $id;
 
@@ -33,6 +34,7 @@ class Client
      * @Column(phone)
      * @Type(varchar)
      * @Length(32)
+     * @Default(+48 000-000-000)
      */
     private $phone;
 

@@ -22,8 +22,7 @@ class MySQLiDatabaseTable implements DatabaseTable
         $columns_placeholder = implode(", ", $columns);
 
         $values = array_values($entry);
-        $values_placeholder = str_repeat("?, ", sizeof($values) - 1);
-        $values_placeholder .= "?";
+        $values_placeholder = str_repeat("?, ", sizeof($values) - 1) . "?";
 
         $query = "INSERT INTO {$this->name} ($columns_placeholder) VALUES ($values_placeholder);";
         $parameter_types = $this->get_mysql_types_of($values);
@@ -33,14 +32,14 @@ class MySQLiDatabaseTable implements DatabaseTable
 
     private function get_mysql_types_of($values)
     {
-        $parameter_types = array();
+        $types = array();
 
         foreach ($values as $value)
         {
-            $parameter_types[] = $this->get_mysql_type_of($value);
+            $types[] = $this->get_mysql_type_of($value);
         }
 
-        return $parameter_types;
+        return $types;
     }
 
     private function get_mysql_type_of($value): string
@@ -80,8 +79,8 @@ class MySQLiDatabaseTable implements DatabaseTable
         $parameter_types = $this->get_mysql_types_of($values);
         $primary_key_identifier_type = $this->get_mysql_type_of($primary_key_value);
 
-        $parameter_types = array_merge($parameter_types, array($primary_key_identifier_type));
-        $parameters = array_merge($values, array($primary_key_value));
+        $parameter_types = array_merge($parameter_types, [$primary_key_identifier_type]);
+        $parameters = array_merge($values, [$primary_key_value]);
 
         $this->execute_query($query, $parameter_types, $parameters);
     }
