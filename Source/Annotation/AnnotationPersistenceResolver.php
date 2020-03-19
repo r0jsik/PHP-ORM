@@ -1,9 +1,10 @@
 <?php
 namespace Source\Annotation;
 
-use Source\Core\PersistenceResolver;
+use Generator;
 use ReflectionClass;
 use ReflectionProperty;
+use Source\Core\PersistenceResolver;
 
 class AnnotationPersistenceResolver implements PersistenceResolver
 {
@@ -25,12 +26,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
     private function extract_annotation_value(string $doc_string, string $annotation_name)
     {
-        $groups = array();
         $pattern = "/@$annotation_name\((.*)?\)/";
+        $matches = array();
 
-        if (preg_match($pattern, $doc_string, $groups))
+        if (preg_match($pattern, $doc_string, $matches))
         {
-            return $groups[1];
+            return $matches[1];
         }
 
         throw new AnnotationNotFoundException($annotation_name);
@@ -44,53 +45,47 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         foreach ($properties as $property)
         {
             $column_name = $this->get_column_name($property);
-            $annotation_map = $this->get_column_definition_map($property);
+            $definitions_generator = $this->get_column_definitions_generator($property);
 
-            $definitions[$column_name] = $annotation_map;
+            $definitions[$column_name] = iterator_to_array($definitions_generator);
         }
 
         return $definitions;
     }
 
-    private function get_column_definition_map(ReflectionProperty $property): array
+    private function get_properties_of($object): array
     {
-        $doc_string = $property->getDocComment();
-        $pattern = "/@(\w+)(\((.*)\))?/";
-        $match_result = array();
+        $reflection = new ReflectionClass($object);
+        $properties = $reflection->getProperties();
 
-        if (preg_match_all($pattern, $doc_string, $match_result))
-        {
-            return $this->map_column_definitions($match_result[1], $match_result[3]);
-        }
-
-        throw new AnnotationNotFoundException();
-    }
-
-    private function map_column_definitions($annotation_names, $annotation_values)
-    {
-        $definition = array();
-
-        foreach ($annotation_names as $i => $annotation)
-        {
-            $definition[$annotation] = $this->map_column_definition($annotation_values, $i);
-        }
-
-        return $definition;
-    }
-
-    private function map_column_definition($annotation_values, $i)
-    {
-        if ($annotation_values[$i] === "")
-        {
-            return true;
-        }
-
-        return $annotation_values[$i];
+        return $properties;
     }
 
     private function get_column_name(ReflectionProperty $property): string
     {
         return $this->extract_annotation_value($property->getDocComment(), "Column");
+    }
+
+    private function get_column_definitions_generator(ReflectionProperty $property): Generator
+    {
+        $doc_string = $property->getDocComment();
+        $pattern = "/@(\w+)(\((.*)\))?/";
+        $matches = array();
+
+        if (preg_match_all($pattern, $doc_string, $matches))
+        {
+            return $this->generate_column_definitions($matches[1], $matches[3]);
+        }
+
+        throw new AnnotationNotFoundException();
+    }
+
+    private function generate_column_definitions($annotation_names, $annotation_values): Generator
+    {
+        foreach ($annotation_names as $i => $annotation_name)
+        {
+            yield $annotation_name => $annotation_values[$i];
+        }
     }
 
     public function resolve_primary_key_name($object): string
@@ -113,14 +108,6 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         throw new AnnotationNotFoundException();
     }
 
-    private function get_properties_of($object): array
-    {
-        $reflection = new ReflectionClass($object);
-        $properties = $reflection->getProperties();
-
-        return $properties;
-    }
-
     private function is_annotated(ReflectionProperty $property, string $annotation_name): bool
     {
         return preg_match("/@$annotation_name/", $property->getDocComment());
@@ -133,7 +120,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
     private function get_value_of_property(ReflectionProperty $property, $object)
     {
-        $is_accessible = $property->isPrivate();
+        $is_accessible = $property->isPublic();
         $property->setAccessible(true);
         $value = $property->getValue($object);
         $property->setAccessible($is_accessible);
@@ -148,10 +135,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
         foreach ($properties as $property)
         {
-            $column_name = $this->get_column_name($property);
-            $property_value = $this->get_value_of_property($property, $object);
-
-            $fields_map[$column_name] = $property_value;
+            $fields_map[$this->get_column_name($property)] = $this->get_value_of_property($property, $object);
         }
 
         return $fields_map;
