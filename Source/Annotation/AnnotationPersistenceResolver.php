@@ -40,17 +40,16 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     public function resolve_column_definitions($object): array
     {
         $properties = $this->get_properties_of($object);
-        $definitions = array();
+        $column_definitions = array();
 
         foreach ($properties as $property)
         {
-            $column_name = $this->get_column_name($property);
-            $definitions_generator = $this->get_column_definitions_generator($property);
-
-            $definitions[$column_name] = iterator_to_array($definitions_generator);
+            $column_definition_generator = $this->get_column_definition_generator($property);
+            $column_definition = iterator_to_array($column_definition_generator);
+            $column_definitions[] = new AnnotationColumnDefinition($column_definition);
         }
 
-        return $definitions;
+        return $column_definitions;
     }
 
     private function get_properties_of($object): array
@@ -61,12 +60,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $properties;
     }
 
-    private function get_column_name(ReflectionProperty $property): string
-    {
-        return $this->extract_annotation_value($property->getDocComment(), "Column");
-    }
-
-    private function get_column_definitions_generator(ReflectionProperty $property): Generator
+    private function get_column_definition_generator(ReflectionProperty $property): Generator
     {
         $doc_string = $property->getDocComment();
         $pattern = "/@(\w+)(\((.*)\))?/";
@@ -74,13 +68,13 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
         if (preg_match_all($pattern, $doc_string, $matches))
         {
-            return $this->generate_column_definitions($matches[1], $matches[3]);
+            return $this->generate_column_definition($matches[1], $matches[3]);
         }
 
         throw new AnnotationNotFoundException();
     }
 
-    private function generate_column_definitions($annotation_names, $annotation_values): Generator
+    private function generate_column_definition($annotation_names, $annotation_values): Generator
     {
         foreach ($annotation_names as $i => $annotation_name)
         {
@@ -139,5 +133,10 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         }
 
         return $fields_map;
+    }
+
+    private function get_column_name(ReflectionProperty $property): string
+    {
+        return $this->extract_annotation_value($property->getDocComment(), "Column");
     }
 }

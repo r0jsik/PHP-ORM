@@ -4,6 +4,7 @@ namespace Source\Database;
 use mysqli;
 use mysqli_stmt;
 use Source\Database\Table\DatabaseTable;
+use Source\Database\Table\MySQLiColumnDescriptor;
 use Source\Database\Table\MySQLiDatabaseTable;
 use Source\Database\Table\TableNotFoundException;
 
@@ -11,11 +12,13 @@ class MySQLiDatabase implements Database
 {
     private $mysqli;
     private $database_name;
+    private $column_descriptor;
 
     public function __construct(string $host, string $username, string $password, string $database_name)
     {
         $this->mysqli = new mysqli($host, $username, $password, $database_name);
         $this->database_name = $database_name;
+        $this->column_descriptor = new MySQLiColumnDescriptor();
     }
 
     public function table_exists(string $name): bool
@@ -44,48 +47,15 @@ class MySQLiDatabase implements Database
 
     public function create_table(string $name, array $column_definitions)
     {
-        $definition_strings = array();
+        $column_descriptions = array();
 
-        foreach ($column_definitions as $column_name => $definition)
+        foreach ($column_definitions as $column_definition)
         {
-            $definition_string = $column_name . " " . $definition["Type"];
-
-            if (key_exists("Length", $definition))
-            {
-                $definition_string .= "(" . $definition["Length"] . ")";
-            }
-
-            if (key_exists("Unique", $definition))
-            {
-                $definition_string .= " UNIQUE";
-            }
-
-            if (key_exists("NotNull", $definition))
-            {
-                $definition_string .= " NOT NULL";
-            }
-
-            if (key_exists("Default", $definition))
-            {
-                $definition_string .= " DEFAULT \"" . $definition["Default"] . "\"";
-            }
-
-            if (key_exists("PrimaryKey", $definition))
-            {
-                $definition_string .= " PRIMARY KEY";
-
-                if (key_exists("Autoincrement", $definition))
-                {
-                    $definition_string .= " AUTO_INCREMENT";
-                }
-            }
-
-            $definition_strings[] = $definition_string;
+            $column_descriptions[] = $this->column_descriptor->describe($column_definition);
         }
 
-        $definition_string = implode(", ", $definition_strings);
-        $query = "CREATE TABLE `$name` ($definition_string);";
-
+        $columns_description = implode(", ", $column_descriptions);
+        $query = "CREATE TABLE `$name` ($columns_description);";
         $this->mysqli->query($query);
     }
 
