@@ -52,7 +52,7 @@ class MySQLiDatabase implements Database
         $this->execute_query($query);
     }
 
-    private function describe_columns(array $column_definitions)
+    private function describe_columns(array $column_definitions): string
     {
         $column_descriptions = array();
 

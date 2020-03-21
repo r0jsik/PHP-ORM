@@ -3,6 +3,7 @@ namespace Source\Database\Table;
 
 use mysqli;
 use mysqli_stmt;
+use Source\Database\DatabaseActionException;
 
 class MySQLiDatabaseTable implements DatabaseTable
 {
@@ -25,7 +26,7 @@ class MySQLiDatabaseTable implements DatabaseTable
         $values = array_values($entry);
         $values_placeholder = str_repeat("?, ", sizeof($values) - 1) . "?";
 
-        $query = "INSERT INTO {$this->name} ($columns_placeholder) VALUES ($values_placeholder);";
+        $query = "INSERT INTO `{$this->name}` ($columns_placeholder) VALUES ($values_placeholder);";
         $parameter_types = $this->get_mysql_types_of($values);
 
         $this->execute_query($query, $parameter_types, $values);
@@ -65,16 +66,44 @@ class MySQLiDatabaseTable implements DatabaseTable
     {
         $parameter_types = implode($parameter_types);
 
-        $query = $this->mysqli->prepare($query);
-        $query->bind_param($parameter_types, ...$parameters);
-        $query->execute();
-        $query->close();
+        if ($query = $this->mysqli->prepare($query))
+        {
+            $query->bind_param($parameter_types, ...$parameters);
+
+            try
+            {
+                $this->execute_prepared_query($query);
+            }
+            finally
+            {
+                $query->close();
+            }
+        }
+        else
+        {
+            throw new DatabaseActionException();
+        }
+    }
+
+    private function execute_prepared_query(mysqli_stmt $query)
+    {
+        if ($result = $query->execute())
+        {
+            if ($query->affected_rows == 0)
+            {
+                throw new PrimaryKeyNotFoundException();
+            }
+        }
+        else
+        {
+            throw new DatabaseActionException();
+        }
     }
 
     public function update($primary_key_value, array $entry)
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
-        $query = "UPDATE {$this->name} SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
+        $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
         $values = array_values($entry);
 
         $parameter_types = $this->get_mysql_types_of($values);
@@ -100,7 +129,7 @@ class MySQLiDatabaseTable implements DatabaseTable
 
     public function remove($primary_key_value)
     {
-        $query = "DELETE FROM {$this->name} WHERE {$this->primary_key_name} = ?;";
+        $query = "DELETE FROM `{$this->name}` WHERE {$this->primary_key_name} = ?;";
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
@@ -113,7 +142,10 @@ class MySQLiDatabaseTable implements DatabaseTable
 
         if ($result = $query->get_result())
         {
-            return $result->fetch_assoc();
+            if ($result = $result->fetch_assoc())
+            {
+                return $result;
+            }
         }
 
         throw new PrimaryKeyNotFoundException();
@@ -123,7 +155,7 @@ class MySQLiDatabaseTable implements DatabaseTable
     {
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
-        $query = "SELECT * FROM {$this->name} WHERE {$this->primary_key_name} = ?";
+        $query = "SELECT * FROM `{$this->name}` WHERE {$this->primary_key_name} = ?";
         $query = $this->mysqli->prepare($query);
         $query->bind_param($primary_key_type, $primary_key_value);
 
