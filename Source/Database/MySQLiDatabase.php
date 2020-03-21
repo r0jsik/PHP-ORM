@@ -47,6 +47,13 @@ class MySQLiDatabase implements Database
 
     public function create_table(string $name, array $column_definitions)
     {
+        $columns_description = $this->describe_columns($column_definitions);
+        $query = "CREATE TABLE `$name` ($columns_description);";
+        $this->execute_query($query);
+    }
+
+    private function describe_columns(array $column_definitions)
+    {
         $column_descriptions = array();
 
         foreach ($column_definitions as $column_definition)
@@ -54,9 +61,15 @@ class MySQLiDatabase implements Database
             $column_descriptions[] = $this->column_descriptor->describe($column_definition);
         }
 
-        $columns_description = implode(", ", $column_descriptions);
-        $query = "CREATE TABLE `$name` ($columns_description);";
-        $this->mysqli->query($query);
+        return implode(", ", $column_descriptions);
+    }
+
+    private function execute_query(string $query)
+    {
+        if ( !$this->mysqli->query($query))
+        {
+            throw new DatabaseActionException();
+        }
     }
 
     public function choose_table(string $name, string $primary_key_name): DatabaseTable
@@ -67,5 +80,15 @@ class MySQLiDatabase implements Database
         }
 
         throw new TableNotFoundException();
+    }
+
+    public function remove_table(string $name)
+    {
+        $this->execute_query("DROP TABLE `$name`;");
+    }
+
+    public function close()
+    {
+        $this->mysqli->close();
     }
 }

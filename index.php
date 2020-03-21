@@ -35,5 +35,5 @@ $persistence_service->update($client_1);
 $client_2->setName("Updated name");
 $persistence_service->update($client_2);
 
-//$persistence_service->remove($client_1);
-//$persistence_service->remove($client_2);
+$persistence_service->remove($client_1);
+$persistence_service->remove($client_2);

@@ -5,7 +5,7 @@ class MySQLiColumnDescriptor implements ColumnDescriptor
 {
     public function describe(ColumnDefinition $column_definition): string
     {
-        $description = $column_definition->get_name() . " " . $column_definition->get_type();
+        $description = "`" . $column_definition->get_name() . "` " . $column_definition->get_type();
 
         if ($column_definition->has_length())
         {

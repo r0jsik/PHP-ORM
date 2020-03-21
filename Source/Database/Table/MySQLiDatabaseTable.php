@@ -2,6 +2,7 @@
 namespace Source\Database\Table;
 
 use mysqli;
+use mysqli_stmt;
 
 class MySQLiDatabaseTable implements DatabaseTable
 {
@@ -103,5 +104,29 @@ class MySQLiDatabaseTable implements DatabaseTable
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
+    }
+
+    public function select($primary_key_value): array
+    {
+        $query = $this->select_query($primary_key_value);
+        $query->execute();
+
+        if ($result = $query->get_result())
+        {
+            return $result->fetch_assoc();
+        }
+
+        throw new PrimaryKeyNotFoundException();
+    }
+
+    private function select_query($primary_key_value): mysqli_stmt
+    {
+        $primary_key_type = $this->get_mysql_type_of($primary_key_value);
+
+        $query = "SELECT * FROM {$this->name} WHERE {$this->primary_key_name} = ?";
+        $query = $this->mysqli->prepare($query);
+        $query->bind_param($primary_key_type, $primary_key_value);
+
+        return $query;
     }
 }
