@@ -51,17 +51,14 @@ class MySQLiDatabaseTest extends TestCase
 
     public function test_create_table_with_valid_column()
     {
-        $this->assert_table_not_exists($this->mock_table_name);
         $this->database->create_table($this->mock_table_name, array(new ValidColumnMockDefinition()));
         $this->assert_table_exists($this->mock_table_name);
         $this->database->remove_table($this->mock_table_name);
-        $this->assert_table_not_exists($this->mock_table_name);
     }
 
     public function test_create_table_with_invalid_column()
     {
         $this->expectException(DatabaseActionException::class);
-        $this->assert_table_not_exists($this->mock_table_name);
         $this->database->create_table($this->mock_table_name, array(new InvalidColumnMockDefinition()));
     }
 
@@ -81,5 +78,11 @@ class MySQLiDatabaseTest extends TestCase
     {
         $this->expectException(TableNotFoundException::class);
         $this->database->choose_table($this->not_existing_table_name, "id");
+    }
+
+    public function test_remove_not_existing_table()
+    {
+        $this->expectException(DatabaseActionException::class);
+        $this->database->remove_table($this->not_existing_table_name);
     }
 }

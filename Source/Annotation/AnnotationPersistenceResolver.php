@@ -122,7 +122,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $value;
     }
 
-    public function resolve_fields_map($object): array
+    public function resolve_as_entry($object): array
     {
         $properties = $this->get_properties_of($object);
         $fields_map = array();
