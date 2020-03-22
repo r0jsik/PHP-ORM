@@ -43,8 +43,9 @@ class DatabasePersistenceService implements PersistenceService
         $this->create_table_if_not_exists($table_name, $object);
 
         $table = $this->choose_table($table_name, $object);
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
         $entry = $this->persistence_resolver->resolve_as_entry($object);
-        $table->insert($entry);
+        $table->insert($primary_key, $entry);
     }
 
     /**
@@ -67,8 +68,9 @@ class DatabasePersistenceService implements PersistenceService
      */
     private function choose_table(string $table_name, $object): DatabaseTable
     {
-        $primary_key = $this->persistence_resolver->resolve_primary_key_name($object);
-        $table = $this->database->choose_table($table_name, $primary_key);
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key_name = $primary_key->get_name();
+        $table = $this->database->choose_table($table_name, $primary_key_name);
 
         return $table;
     }
@@ -79,11 +81,11 @@ class DatabasePersistenceService implements PersistenceService
     public function update($object): void
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
-        $primary_key_value = $this->persistence_resolver->resolve_primary_key_value($object);
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
         $entry = $this->persistence_resolver->resolve_as_entry($object);
 
         $table = $this->choose_table($table_name, $object);
-        $table->update($primary_key_value, $entry);
+        $table->update($primary_key, $entry);
     }
 
     /**
@@ -92,9 +94,9 @@ class DatabasePersistenceService implements PersistenceService
     public function remove($object): void
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
-        $primary_key_value = $this->persistence_resolver->resolve_primary_key_value($object);
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
 
         $table = $this->choose_table($table_name, $object);
-        $table->remove($primary_key_value);
+        $table->remove($primary_key);
     }
 }

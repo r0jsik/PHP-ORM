@@ -25,7 +25,7 @@ class LoggingPersistenceService implements PersistenceService
     }
 
     /**
-     * @param mixed $1 An object that is inserted into the PersistenceService.
+     * @param mixed $object An object that is inserted into the PersistenceService.
      */
     public function insert($object): void
     {
@@ -39,16 +39,26 @@ class LoggingPersistenceService implements PersistenceService
         }
         catch (Exception $exception)
         {
-            $this->log("Exception occurred during inserting object: $exception");
+            $this->log("Exception occurred while inserting object:", $exception);
         }
     }
 
     /**
      * @param string $message The message that will be printed.
+     * @param Exception|null $exception
      */
-    private function log(string $message)
+    private function log(string $message, Exception $exception = null)
     {
-        echo "$message<br />";
+        echo "$message";
+
+        if ($exception == null)
+        {
+            echo "<br />";
+        }
+        else
+        {
+            echo "<pre>$exception</pre>";
+        }
     }
 
     /**
@@ -66,7 +76,7 @@ class LoggingPersistenceService implements PersistenceService
         }
         catch (Exception $exception)
         {
-            $this->log("Exception occurred during updating object: $exception");
+            $this->log("Exception occurred while updating object", $exception);
         }
     }
 
@@ -85,7 +95,7 @@ class LoggingPersistenceService implements PersistenceService
         }
         catch (Exception $exception)
         {
-            $this->log("Exception occurred during removing object: $exception");
+            $this->log("Exception occurred while removing object:", $exception);
         }
     }
 }

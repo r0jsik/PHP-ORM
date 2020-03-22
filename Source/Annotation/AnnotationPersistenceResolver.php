@@ -6,6 +6,8 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 use Source\Core\PersistenceResolver;
+use Source\Core\PrimaryKey;
+use Source\Core\ReflectedPrimaryKey;
 
 /**
  * Class AnnotationPersistenceResolver
@@ -129,23 +131,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that will be examined.
-     * @return string A name of the field annotated by the @PrimaryKey annotation.
-     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
+     * @param mixed $object An examined object.
+     * @return PrimaryKey The primary key.
+     * @throws AnnotationNotFoundException Thrown when none of the $object's class' field is annotated by the @PrimaryKey annotation.
      * @throws ReflectionException Thrown when unable to reflect $object's class.
      */
-    public function resolve_primary_key_name($object): string
-    {
-        return $this->get_primary_key_property($object)->getName();
-    }
-
-    /**
-     * @param mixed $object An object that will be examined.
-     * @return ReflectionProperty Reflected field of the $object's class.
-     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
-     * @throws ReflectionException Thrown when unable to reflect $object's class.
-     */
-    private function get_primary_key_property($object): ReflectionProperty
+    public function resolve_primary_key($object): PrimaryKey
     {
         $properties = $this->get_properties_of($object);
 
@@ -153,7 +144,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         {
             if ($this->is_annotated($property, "PrimaryKey"))
             {
-                return $property;
+                return new ReflectedPrimaryKey($object, $property);
             }
         }
 
@@ -168,32 +159,6 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     private function is_annotated(ReflectionProperty $property, string $annotation_name): bool
     {
         return preg_match("/@$annotation_name/", $property->getDocComment());
-    }
-
-    /**
-     * @param mixed $object An object that will be examined.
-     * @return mixed The value of the field annotated by the @PrimaryKey annotation.
-     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
-     * @throws ReflectionException Thrown when unable to reflect $object's class.
-     */
-    public function resolve_primary_key_value($object)
-    {
-        return $this->get_value_of_property($this->get_primary_key_property($object), $object);
-    }
-
-    /**
-     * @param ReflectionProperty $property A field of the $object's that will be examined.
-     * @param mixed $object An object that will be examined.
-     * @return mixed The value of the $object's field.
-     */
-    private function get_value_of_property(ReflectionProperty $property, $object)
-    {
-        $is_accessible = $property->isPublic();
-        $property->setAccessible(true);
-        $value = $property->getValue($object);
-        $property->setAccessible($is_accessible);
-
-        return $value;
     }
 
     /**
@@ -225,5 +190,20 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     private function get_column_name(ReflectionProperty $property): string
     {
         return $this->extract_annotation_value($property->getDocComment(), "Column");
+    }
+
+    /**
+     * @param ReflectionProperty $property A field of the $object's that will be examined.
+     * @param mixed $object An object that will be examined.
+     * @return mixed The value of the $object's field.
+     */
+    private function get_value_of_property(ReflectionProperty $property, $object)
+    {
+        $is_accessible = $property->isPublic();
+        $property->setAccessible(true);
+        $value = $property->getValue($object);
+        $property->setAccessible($is_accessible);
+
+        return $value;
     }
 }

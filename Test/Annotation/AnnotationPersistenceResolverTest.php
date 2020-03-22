@@ -48,19 +48,20 @@ class AnnotationPersistenceResolverTest extends TestCase
 
     public function test_resolve_valid_primary_key()
     {
-        $primary_key_name = $this->annotation_resolver->resolve_primary_key_name($this->valid_mock_object);
-        $this->assertNotNull($primary_key_name);
+        $primary_key = $this->annotation_resolver->resolve_primary_key($this->valid_mock_object);
+        $this->assertNotNull($primary_key);
     }
 
     public function test_resolve_invalid_primary_key()
     {
         $this->expectException(AnnotationNotFoundException::class);
-        $this->annotation_resolver->resolve_primary_key_name($this->invalid_mock_object);
+        $this->annotation_resolver->resolve_primary_key($this->invalid_mock_object);
     }
 
     public function test_resolve_primary_key_value()
     {
-        $primary_key_value = $this->annotation_resolver->resolve_primary_key_value($this->valid_mock_object);
+        $primary_key = $this->annotation_resolver->resolve_primary_key($this->valid_mock_object);
+        $primary_key_value = $primary_key->get_value();
         $this->assertEquals("TEST", $primary_key_value);
     }
 }

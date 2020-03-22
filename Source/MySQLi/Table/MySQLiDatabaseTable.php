@@ -3,6 +3,7 @@ namespace Source\MySQLi\Table;
 
 use mysqli;
 use mysqli_stmt;
+use Source\Core\PrimaryKey;
 use Source\Database\DatabaseActionException;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\InvalidPrimaryKeyException;
@@ -43,12 +44,13 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
+     * @param PrimaryKey $primary_key A primary key that will be updated after successful insert.
      * @param mixed $entry An associative array representing a record stored in the table.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
      * @throws DatabaseActionException Thrown when unable to execute inserting query.
      * @throws InvalidPrimaryKeyException Thrown when the record could not be inserted into the table due to invalid key.
      */
-    public function insert(array $entry): void
+    public function insert(PrimaryKey $primary_key, array $entry): void
     {
         $columns = array_keys($entry);
         $columns_placeholder = implode(", ", $columns);
@@ -60,6 +62,8 @@ class MySQLiDatabaseTable implements DatabaseTable
         $parameter_types = $this->get_mysql_types_of($values);
 
         $this->execute_query($query, $parameter_types, $values);
+
+        $primary_key->set_value($this->mysqli->insert_id);
     }
 
     /**
@@ -155,19 +159,20 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param mixed $primary_key_value Value of the primary key pointing to the record that will be updated.
+     * @param PrimaryKey $primary_key A primary key pointing to the record that will be updated.
      * @param mixed $entry An associative array representing a record stored in the table.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
      * @throws DatabaseActionException Thrown when unable to execute query updating the table.
      * @throws InvalidPrimaryKeyException Thrown when none of the record has been updated due to invalid primary key.
      */
-    public function update($primary_key_value, array $entry): void
+    public function update(PrimaryKey $primary_key, array $entry): void
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
         $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
         $values = array_values($entry);
 
         $parameter_types = $this->get_mysql_types_of($values);
+        $primary_key_value = $primary_key->get_value();
         $primary_key_identifier_type = $this->get_mysql_type_of($primary_key_value);
 
         $parameter_types = array_merge($parameter_types, [$primary_key_identifier_type]);
@@ -197,27 +202,28 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param mixed $primary_key_value Value of the primary key pointing to the record that will be removed.
+     * @param PrimaryKey $primary_key A primary key pointing to the record that will be removed.
      * @throws DatabaseActionException Thrown when unable to execute query removing record identified by $primary_key_value.
      * @throws InvalidPrimaryKeyException Thrown when the query removed nothing.
      */
-    public function remove($primary_key_value): void
+    public function remove(PrimaryKey $primary_key): void
     {
         $query = "DELETE FROM `{$this->name}` WHERE {$this->primary_key_name} = ?;";
+        $primary_key_value = $primary_key->get_value();
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
     }
 
     /**
-     * @param mixed $primary_key_value A value of the primary key pointing to the record that will be selected.
+     * @param PrimaryKey $primary_key A primary key pointing to the record that will be selected.
      * @return array An associative array representing a record stored in the table.
      *               Each element of the array is pointing from the column name to value: "column-name" => "value".
      * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the database.
      */
-    public function select($primary_key_value): array
+    public function select(PrimaryKey $primary_key): array
     {
-        $query = $this->select_query($primary_key_value);
+        $query = $this->select_query($primary_key);
         $query->execute();
 
         if ($result = $query->get_result())
@@ -232,11 +238,12 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param mixed $primary_key_value A value of the primary key identifying record which data will be selected.
+     * @param PrimaryKey $primary_key A primary key identifying record which data will be selected.
      * @return mysqli_stmt An object representing prepared query responsible for selecting data from the database.
      */
-    private function select_query($primary_key_value): mysqli_stmt
+    private function select_query(PrimaryKey $primary_key): mysqli_stmt
     {
+        $primary_key_value = $primary_key->get_value();
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $query = "SELECT * FROM `{$this->name}` WHERE {$this->primary_key_name} = ?";

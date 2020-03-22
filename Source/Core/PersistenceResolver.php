@@ -23,15 +23,9 @@ interface PersistenceResolver
 
     /**
      * @param mixed $object An object that will be examined.
-     * @return string A name of the class' field resolved as a primary key.
+     * @return PrimaryKey The primary key.
      */
-    public function resolve_primary_key_name($object): string;
-
-    /**
-     * @param mixed $object An object that will be examined.
-     * @return mixed A value of the class' field resolved as a primary key.
-     */
-    public function resolve_primary_key_value($object);
+    public function resolve_primary_key($object): PrimaryKey;
 
     /**
      * @param mixed $object An object that will be examined.
