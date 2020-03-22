@@ -8,7 +8,7 @@ spl_autoload_register(function ($path) {
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
 use Source\Database\MySQLiDatabase;
-use Source\Database\Table\PrimaryKeyNotFoundException;
+use Source\Database\Table\InvalidPrimaryKeyException;
 
 class MySQLiDatabaseTableTest extends TestCase
 {
@@ -46,7 +46,7 @@ class MySQLiDatabaseTableTest extends TestCase
 
     private function assert_not_exists($primary_key)
     {
-        $this->expectException(PrimaryKeyNotFoundException::class);
+        $this->expectException(InvalidPrimaryKeyException::class);
         $this->table->select($primary_key);
     }
 
@@ -93,7 +93,7 @@ class MySQLiDatabaseTableTest extends TestCase
     {
         $entry = ["id" => 3612];
 
-        $this->expectException(PrimaryKeyNotFoundException::class);
+        $this->expectException(InvalidPrimaryKeyException::class);
         $this->table->update($this->not_existing_primary_key, $entry);
     }
 
@@ -117,7 +117,7 @@ class MySQLiDatabaseTableTest extends TestCase
 
     public function test_remove_not_existing_entry()
     {
-        $this->expectException(PrimaryKeyNotFoundException::class);
+        $this->expectException(InvalidPrimaryKeyException::class);
         $this->table->remove($this->not_existing_primary_key);
     }
 }

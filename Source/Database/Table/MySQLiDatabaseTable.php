@@ -5,12 +5,34 @@ use mysqli;
 use mysqli_stmt;
 use Source\Database\DatabaseActionException;
 
+/**
+ * Class MySQLiDatabaseTable
+ * @package Source\Database\Table
+ *
+ * A MySQLi based implementation of the DatabaseTable.
+ */
 class MySQLiDatabaseTable implements DatabaseTable
 {
+    /**
+     * @var string A name of the table.
+     */
     private $name;
+
+    /**
+     * @var string A name of a column that is a primary key of the table.
+     */
     private $primary_key_name;
+
+    /**
+     * @var mysqli An object representing database driver.
+     */
     private $mysqli;
 
+    /**
+     * @param string $name A name of the table.
+     * @param string $primary_key_name A name of a column that is a primary key of the table.
+     * @param mysqli $mysqli An object representing database driver.
+     */
     public function __construct(string $name, string $primary_key_name, mysqli $mysqli)
     {
         $this->name = $name;
@@ -18,7 +40,13 @@ class MySQLiDatabaseTable implements DatabaseTable
         $this->mysqli = $mysqli;
     }
 
-    public function insert(array $entry)
+    /**
+     * @param mixed $entry An associative array representing a record stored in the table.
+     *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
+     * @throws DatabaseActionException Thrown when unable to execute inserting query.
+     * @throws InvalidPrimaryKeyException Thrown when the record could not be inserted into the table due to invalid key.
+     */
+    public function insert(array $entry): void
     {
         $columns = array_keys($entry);
         $columns_placeholder = implode(", ", $columns);
@@ -32,6 +60,10 @@ class MySQLiDatabaseTable implements DatabaseTable
         $this->execute_query($query, $parameter_types, $values);
     }
 
+    /**
+     * @param mixed $values An array which element types will be resolved as mysql types.
+     * @return array An array of mysql types corresponding to each $value's array element type.
+     */
     private function get_mysql_types_of($values)
     {
         $types = array();
@@ -44,6 +76,10 @@ class MySQLiDatabaseTable implements DatabaseTable
         return $types;
     }
 
+    /**
+     * @param mixed $value A value which type will be resolved as a mysql type.
+     * @return string The mysql type of $value.
+     */
     private function get_mysql_type_of($value): string
     {
         switch (true)
@@ -62,6 +98,15 @@ class MySQLiDatabaseTable implements DatabaseTable
         }
     }
 
+    /**
+     * @param string $query The query that will be prepared.
+     * @param array $parameter_types An array containing mysqli types of each parameter to describe parameters of the query.
+     * @param array $parameters An array containing values of each parameter that will be used in the query.
+     * @throws DatabaseActionException Thrown when unable to execute the query, for example is not prepared well.
+     * @throws InvalidPrimaryKeyException Thrown when the query changed nothing, for example:
+     *                                    - none of the record requested to remove was present in the table before executing query
+     *                                    - none of the record has been updated due to invalid primary key
+     */
     private function execute_query(string $query, array $parameter_types, array $parameters)
     {
         $parameter_types = implode($parameter_types);
@@ -85,13 +130,20 @@ class MySQLiDatabaseTable implements DatabaseTable
         }
     }
 
+    /**
+     * @param mysqli_stmt $query A prepared query that will be executed.
+     * @throws DatabaseActionException Thrown when unable to execute the query, for example is not prepared well.
+     * @throws InvalidPrimaryKeyException Thrown when the query changed nothing, for example:
+     *                                    - none of the record requested to remove was present in the table before executing query
+     *                                    - none of the record has been updated due to invalid primary key
+     */
     private function execute_prepared_query(mysqli_stmt $query)
     {
         if ($result = $query->execute())
         {
             if ($query->affected_rows == 0)
             {
-                throw new PrimaryKeyNotFoundException();
+                throw new InvalidPrimaryKeyException();
             }
         }
         else
@@ -100,7 +152,14 @@ class MySQLiDatabaseTable implements DatabaseTable
         }
     }
 
-    public function update($primary_key_value, array $entry)
+    /**
+     * @param mixed $primary_key_value Value of the primary key pointing to the record that will be updated.
+     * @param mixed $entry An associative array representing a record stored in the table.
+     *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
+     * @throws DatabaseActionException Thrown when unable to execute query updating the table.
+     * @throws InvalidPrimaryKeyException Thrown when none of the record has been updated due to invalid primary key.
+     */
+    public function update($primary_key_value, array $entry): void
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
         $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
@@ -115,6 +174,14 @@ class MySQLiDatabaseTable implements DatabaseTable
         $this->execute_query($query, $parameter_types, $parameters);
     }
 
+    /**
+     * @param mixed $entry An associative array representing a record stored in the table.
+     *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
+     * @return string A placeholder used by query-preparing mechanism.
+     *                Each column name of the entry will be assigned to the question mark and imploded with a comma, for example:
+     *                "column_name_1 = ?, column_name_2 = ?, column_name_3 = ?".
+     *                This placeholder is used to build prepared statement taking into account three columns.
+     */
     private function get_mapping_placeholder($entry)
     {
         $mapping_placeholders = array();
@@ -127,7 +194,12 @@ class MySQLiDatabaseTable implements DatabaseTable
         return implode(", ", $mapping_placeholders);
     }
 
-    public function remove($primary_key_value)
+    /**
+     * @param mixed $primary_key_value Value of the primary key pointing to the record that will be removed.
+     * @throws DatabaseActionException Thrown when unable to execute query removing record identified by $primary_key_value.
+     * @throws InvalidPrimaryKeyException Thrown when the query removed nothing.
+     */
+    public function remove($primary_key_value): void
     {
         $query = "DELETE FROM `{$this->name}` WHERE {$this->primary_key_name} = ?;";
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
@@ -135,6 +207,12 @@ class MySQLiDatabaseTable implements DatabaseTable
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
     }
 
+    /**
+     * @param mixed $primary_key_value A value of the primary key pointing to the record that will be selected.
+     * @return array An associative array representing a record stored in the table.
+     *               Each element of the array is pointing from the column name to value: "column-name" => "value".
+     * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the database.
+     */
     public function select($primary_key_value): array
     {
         $query = $this->select_query($primary_key_value);
@@ -148,9 +226,13 @@ class MySQLiDatabaseTable implements DatabaseTable
             }
         }
 
-        throw new PrimaryKeyNotFoundException();
+        throw new InvalidPrimaryKeyException();
     }
 
+    /**
+     * @param mixed $primary_key_value A value of the primary key identifying record which data will be selected.
+     * @return mysqli_stmt An object representing prepared query responsible for selecting data from the database.
+     */
     private function select_query($primary_key_value): mysqli_stmt
     {
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);

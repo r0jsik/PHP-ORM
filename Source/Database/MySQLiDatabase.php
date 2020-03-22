@@ -8,12 +8,35 @@ use Source\Database\Table\MySQLiColumnDescriptor;
 use Source\Database\Table\MySQLiDatabaseTable;
 use Source\Database\Table\TableNotFoundException;
 
+/**
+ * Class MySQLiDatabase
+ * @package Source\Database
+ *
+ * Represents a MySQLi-based implementation of the Database.
+ */
 class MySQLiDatabase implements Database
 {
+    /**
+     * @var mysqli An object representing driver of the database.
+     */
     private $mysqli;
+
+    /**
+     * @var string A name of the database.
+     */
     private $database_name;
+
+    /**
+     * @var MySQLiColumnDescriptor An object describing column definitions in MySQL dialect.
+     */
     private $column_descriptor;
 
+    /**
+     * @param string $host An address of the database host.
+     * @param string $username An username of the user that database will be connected as.
+     * @param string $password A password of the user connected to the database.
+     * @param string $database_name A name of the database from which data will be received.
+     */
     public function __construct(string $host, string $username, string $password, string $database_name)
     {
         $this->mysqli = new mysqli($host, $username, $password, $database_name);
@@ -21,6 +44,10 @@ class MySQLiDatabase implements Database
         $this->column_descriptor = new MySQLiColumnDescriptor();
     }
 
+    /**
+     * @param string $name The name of the table.
+     * @return bool A flag checking if the table exists in the database.
+     */
     public function table_exists(string $name): bool
     {
         $exists = null;
@@ -36,6 +63,10 @@ class MySQLiDatabase implements Database
         return $exists;
     }
 
+    /**
+     * @param string $table_name A name of the table.
+     * @return mysqli_stmt An object representing prepared query checking if the table with the specified name exists in the database.
+     */
     private function table_exists_query(string $table_name): mysqli_stmt
     {
         $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?;";
@@ -45,13 +76,22 @@ class MySQLiDatabase implements Database
         return $query;
     }
 
-    public function create_table(string $name, array $column_definitions)
+    /**
+     * @param string $name A name of the table.
+     * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
+     * @throws DatabaseActionException Thrown when unable to execute query creating table.
+     */
+    public function create_table(string $name, array $column_definitions): void
     {
         $columns_description = $this->describe_columns($column_definitions);
         $query = "CREATE TABLE `$name` ($columns_description);";
         $this->execute_query($query);
     }
 
+    /**
+     * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
+     * @return string A description of the columns received from parsing column definitions.
+     */
     private function describe_columns(array $column_definitions): string
     {
         $column_descriptions = array();
@@ -64,6 +104,10 @@ class MySQLiDatabase implements Database
         return implode(", ", $column_descriptions);
     }
 
+    /**
+     * @param string $query A query that will be executed by the database driver.
+     * @throws DatabaseActionException Thrown when unable to execute the query.
+     */
     private function execute_query(string $query)
     {
         if ( !$this->mysqli->query($query))
@@ -72,6 +116,12 @@ class MySQLiDatabase implements Database
         }
     }
 
+    /**
+     * @param string $name A name of the table that will be fetched.
+     * @param string $primary_key_name A name of the primary key column.
+     * @return DatabaseTable An object representing fetched table.
+     * @throws TableNotFoundException Thrown when table with the specified name doesn't exist.
+     */
     public function choose_table(string $name, string $primary_key_name): DatabaseTable
     {
         if ($this->table_exists($name))
@@ -82,12 +132,19 @@ class MySQLiDatabase implements Database
         throw new TableNotFoundException();
     }
 
-    public function remove_table(string $name)
+    /**
+     * @param string $name A name of the table that will be removed.
+     * @throws DatabaseActionException Thrown when unable to remove table with the specified name.
+     */
+    public function remove_table(string $name): void
     {
         $this->execute_query("DROP TABLE `$name`;");
     }
 
-    public function close()
+    /**
+     * Closes the connection.
+     */
+    public function close(): void
     {
         $this->mysqli->close();
     }

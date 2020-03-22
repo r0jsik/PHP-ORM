@@ -1,8 +1,18 @@
 <?php
 namespace Source\Database\Table;
 
+/**
+ * Class MySQLiColumnDescriptor
+ * @package Source\Database\Table
+ *
+ * An implementation of the mechanism describing column definition in MySQL dialect.
+ */
 class MySQLiColumnDescriptor implements ColumnDescriptor
 {
+    /**
+     * @param ColumnDefinition $column_definition The definition of the column that will be described.
+     * @return string The MySQL description of the column.
+     */
     public function describe(ColumnDefinition $column_definition): string
     {
         $description = "`" . $column_definition->get_name() . "` " . $column_definition->get_type();

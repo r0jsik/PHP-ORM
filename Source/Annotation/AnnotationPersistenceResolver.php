@@ -3,11 +3,24 @@ namespace Source\Annotation;
 
 use Generator;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionProperty;
 use Source\Core\PersistenceResolver;
 
+/**
+ * Class AnnotationPersistenceResolver
+ * @package Source\Annotation
+ *
+ * An annotation-based implementation of the PersistenceResolver interface.
+ */
 class AnnotationPersistenceResolver implements PersistenceResolver
 {
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return string A name of the table resolved as a value of the @Table annotation assigned to the $object's class.
+     * @throws AnnotationNotFoundException Thrown when the $object's class is not annotated by the @Table annotation.
+     * @throws ReflectionException Thrown when unable to resolve $object's class.
+     */
     public function resolve_table_name($object): string
     {
         $doc_string = $this->get_doc_string_of($object);
@@ -16,6 +29,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $table_name;
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return string A documentation comment assigned to the $object's class.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     private function get_doc_string_of($object): string
     {
         $reflection = new ReflectionClass($object);
@@ -24,6 +42,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $doc_string;
     }
 
+    /**
+     * @param string $doc_string A documentation comment assigned to the $object's class.
+     * @param string $annotation_name A name of the annotation that will be searched in the $doc_string string.
+     * @return mixed The value of the annotation.
+     * @throws AnnotationNotFoundException Thrown when $doc_string doesn't contain an Annotation named as $annotation_name.
+     */
     private function extract_annotation_value(string $doc_string, string $annotation_name)
     {
         $pattern = "/@$annotation_name\((.*)?\)/";
@@ -37,6 +61,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         throw new AnnotationNotFoundException($annotation_name);
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return array An array of the AnnotatedColumnDefinition that defines each column of the $object's fields.
+     * @throws AnnotationNotFoundException Thrown when some field of the $object's class is not annotated.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     public function resolve_column_definitions($object): array
     {
         $properties = $this->get_properties_of($object);
@@ -52,6 +82,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $column_definitions;
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return array An array of the $object's class fields.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     private function get_properties_of($object): array
     {
         $reflection = new ReflectionClass($object);
@@ -60,6 +95,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $properties;
     }
 
+    /**
+     * @param ReflectionProperty $property The property that will be examined.
+     * @return Generator An object generating column definitions, for example:
+     *                   field annotated as a @Column(name) will have generated definition as "Column" => "name" map.
+     * @throws AnnotationNotFoundException Thrown when $property field is not annotated.
+     */
     private function get_column_definition_generator(ReflectionProperty $property): Generator
     {
         $doc_string = $property->getDocComment();
@@ -74,7 +115,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         throw new AnnotationNotFoundException();
     }
 
-    private function generate_column_definition($annotation_names, $annotation_values): Generator
+    /**
+     * @param $annotation_names array An array of each annotation name.
+     * @param $annotation_values array An array of each annotation value.
+     * @return Generator An object generating map of the definitions.
+     */
+    private function generate_column_definition(array $annotation_names, array $annotation_values): Generator
     {
         foreach ($annotation_names as $i => $annotation_name)
         {
@@ -82,11 +128,23 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         }
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return string A name of the field annotated by the @PrimaryKey annotation.
+     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     public function resolve_primary_key_name($object): string
     {
         return $this->get_primary_key_property($object)->getName();
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return ReflectionProperty Reflected field of the $object's class.
+     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     private function get_primary_key_property($object): ReflectionProperty
     {
         $properties = $this->get_properties_of($object);
@@ -102,16 +160,32 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         throw new AnnotationNotFoundException();
     }
 
+    /**
+     * @param ReflectionProperty $property The field that will be examined.
+     * @param string $annotation_name A name of the annotation that will be searched in the $property field's documentation comment.
+     * @return bool A flag checking if the field is annotated by the Annotation named as $annotation_name.
+     */
     private function is_annotated(ReflectionProperty $property, string $annotation_name): bool
     {
         return preg_match("/@$annotation_name/", $property->getDocComment());
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return mixed The value of the field annotated by the @PrimaryKey annotation.
+     * @throws AnnotationNotFoundException Thrown when none of the $object's field is annotated by the @PrimaryKey annotation.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
     public function resolve_primary_key_value($object)
     {
         return $this->get_value_of_property($this->get_primary_key_property($object), $object);
     }
 
+    /**
+     * @param ReflectionProperty $property A field of the $object's that will be examined.
+     * @param mixed $object An object that will be examined.
+     * @return mixed The value of the $object's field.
+     */
     private function get_value_of_property(ReflectionProperty $property, $object)
     {
         $is_accessible = $property->isPublic();
@@ -122,6 +196,14 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $value;
     }
 
+    /**
+     * @param mixed $object An object that will be examined.
+     * @return array An associative array mapping @Column's annotation value to the field's value, for example:
+     *               Field with "example value" value that is annotated by the @Column(column-name) annotation will be mapped as:
+     *               "column-name" => "example value"
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     * @throws AnnotationNotFoundException Thrown when some field of the $object is not annotated by the @Column annotation.
+     */
     public function resolve_as_entry($object): array
     {
         $properties = $this->get_properties_of($object);
@@ -135,6 +217,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         return $fields_map;
     }
 
+    /**
+     * @param ReflectionProperty $property An examined field.
+     * @return string The content of the @Column annotation assigned to the examined field.
+     * @throws AnnotationNotFoundException Thrown when field is not annotated by the @Column annotation.
+     */
     private function get_column_name(ReflectionProperty $property): string
     {
         return $this->extract_annotation_value($property->getDocComment(), "Column");
