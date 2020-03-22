@@ -1,5 +1,5 @@
 <?php
-namespace Test\Database;
+namespace Test\MySQLi;
 
 spl_autoload_register(function ($path) {
     require_once("$path.php");
@@ -7,8 +7,8 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
-use Source\Database\MySQLiDatabase;
 use Source\Database\Table\TableNotFoundException;
+use Source\MySQLi\MySQLiDatabase;
 use Test\Database\Table\InvalidColumnMockDefinition;
 use Test\Database\Table\ValidColumnMockDefinition;
 

@@ -1,9 +1,12 @@
 <?php
-namespace Source\Database\Table;
+namespace Source\MySQLi\Table;
+
+use Source\Database\Table\ColumnDefinition;
+use Source\Database\Table\ColumnDescriptor;
 
 /**
  * Class MySQLiColumnDescriptor
- * @package Source\Database\Table
+ * @package Source\MySQLi\Table
  *
  * An implementation of the mechanism describing column definition in MySQL dialect.
  */

@@ -1,16 +1,18 @@
 <?php
-namespace Source\Database;
+namespace Source\MySQLi;
 
 use mysqli;
 use mysqli_stmt;
+use Source\Database\Database;
+use Source\Database\DatabaseActionException;
 use Source\Database\Table\DatabaseTable;
-use Source\Database\Table\MySQLiColumnDescriptor;
-use Source\Database\Table\MySQLiDatabaseTable;
 use Source\Database\Table\TableNotFoundException;
+use Source\MySQLi\Table\MySQLiColumnDescriptor;
+use Source\MySQLi\Table\MySQLiDatabaseTable;
 
 /**
  * Class MySQLiDatabase
- * @package Source\Database
+ * @package Source\MySQLi
  *
  * Represents a MySQLi-based implementation of the Database.
  */

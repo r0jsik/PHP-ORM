@@ -1,5 +1,5 @@
 <?php
-namespace Test\Database\Table;
+namespace Test\MySQLi\Table;
 
 spl_autoload_register(function ($path) {
     require_once("$path.php");
@@ -7,8 +7,8 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
-use Source\Database\MySQLiDatabase;
 use Source\Database\Table\InvalidPrimaryKeyException;
+use Source\MySQLi\MySQLiDatabase;
 
 class MySQLiDatabaseTableTest extends TestCase
 {

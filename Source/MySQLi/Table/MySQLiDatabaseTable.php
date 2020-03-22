@@ -1,13 +1,15 @@
 <?php
-namespace Source\Database\Table;
+namespace Source\MySQLi\Table;
 
 use mysqli;
 use mysqli_stmt;
 use Source\Database\DatabaseActionException;
+use Source\Database\Table\DatabaseTable;
+use Source\Database\Table\InvalidPrimaryKeyException;
 
 /**
  * Class MySQLiDatabaseTable
- * @package Source\Database\Table
+ * @package Source\MySQLi\Table
  *
  * A MySQLi based implementation of the DatabaseTable.
  */
