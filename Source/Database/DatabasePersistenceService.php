@@ -43,9 +43,11 @@ class DatabasePersistenceService implements PersistenceService
         $this->create_table_if_not_exists($table_name, $object);
 
         $table = $this->choose_table($table_name, $object);
-        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
         $entry = $this->persistence_resolver->resolve_as_entry($object);
-        $table->insert($primary_key, $entry);
+        $record_id = $table->insert($entry);
+
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key->set_value($record_id);
     }
 
     /**
@@ -82,10 +84,11 @@ class DatabasePersistenceService implements PersistenceService
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
         $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key_value = $primary_key->get_value();
         $entry = $this->persistence_resolver->resolve_as_entry($object);
 
         $table = $this->choose_table($table_name, $object);
-        $table->update($primary_key, $entry);
+        $table->update($primary_key_value, $entry);
     }
 
     /**
@@ -95,8 +98,9 @@ class DatabasePersistenceService implements PersistenceService
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
         $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key_value = $primary_key->get_value();
 
         $table = $this->choose_table($table_name, $object);
-        $table->remove($primary_key);
+        $table->remove($primary_key_value);
     }
 }

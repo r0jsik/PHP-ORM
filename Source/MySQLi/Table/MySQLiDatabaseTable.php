@@ -3,7 +3,6 @@ namespace Source\MySQLi\Table;
 
 use mysqli;
 use mysqli_stmt;
-use Source\Core\PrimaryKey;
 use Source\Database\DatabaseActionException;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\InvalidPrimaryKeyException;
@@ -44,13 +43,12 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param PrimaryKey $primary_key A primary key that will be updated after successful insert.
      * @param mixed $entry An associative array representing a record stored in the table.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
-     * @throws DatabaseActionException Thrown when unable to execute inserting query.
-     * @throws InvalidPrimaryKeyException Thrown when the record could not be inserted into the table due to invalid key.
+     * @return int Index of inserted record. If the table has an autoincrement index, value of the index will be returned.
+     * @throws DatabaseActionException Thrown when unable to execute the query.
      */
-    public function insert(PrimaryKey $primary_key, array $entry): void
+    public function insert(array $entry): int
     {
         $columns = array_keys($entry);
         $columns_placeholder = implode(", ", $columns);
@@ -59,11 +57,9 @@ class MySQLiDatabaseTable implements DatabaseTable
         $values_placeholder = str_repeat("?, ", sizeof($values) - 1) . "?";
 
         $query = "INSERT INTO `{$this->name}` ($columns_placeholder) VALUES ($values_placeholder);";
-        $parameter_types = $this->get_mysql_types_of($values);
+        $value_types = $this->get_mysql_types_of($values);
 
-        $this->execute_query($query, $parameter_types, $values);
-
-        $primary_key->set_value($this->mysqli->insert_id);
+        return $this->execute_insert_query($query, $value_types, $values);
     }
 
     /**
@@ -105,74 +101,101 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param string $query The query that will be prepared.
+     * @param string $query A plaintext query that will be prepared to insert new record into table.
      * @param array $parameter_types An array containing mysqli types of each parameter to describe parameters of the query.
      * @param array $parameters An array containing values of each parameter that will be used in the query.
-     * @throws DatabaseActionException Thrown when unable to execute the query, for example is not prepared well.
+     * @return int Index of inserted record. If the table has an autoincrement index, value of the index will be returned.
+     * @throws DatabaseActionException Thrown when unable to execute the query.
+     */
+    private function execute_insert_query(string $query, array $parameter_types, array $parameters): int
+    {
+        $query = $this->prepare_query($query, $parameter_types, $parameters);
+        $query->execute();
+
+        try
+        {
+            if ($query->affected_rows > 0)
+            {
+                return $query->insert_id;
+            }
+
+            throw new DatabaseActionException();
+        }
+        finally
+        {
+            $query->close();
+        }
+    }
+
+    /**
+     * @param string $query The plaintext query that will be prepared.
+     * @param array $parameter_types An array containing mysqli types of each parameter to describe parameters of the query.
+     * @param array $parameters An array containing values of each parameter that will be used in the query.
+     * @return mysqli_stmt The prepared query.
+     * @throws DatabaseActionException Thrown when unable to prepare query, for example due to invalid syntax.
+     */
+    private function prepare_query(string $query, array $parameter_types, array $parameters): mysqli_stmt
+    {
+        $parameter_types = implode($parameter_types);
+
+        if ($query = $this->mysqli->prepare($query))
+        {
+            if ($query->bind_param($parameter_types, ...$parameters))
+            {
+                return $query;
+            }
+        }
+
+        throw new DatabaseActionException();
+    }
+
+    /**
+     * @param string $query The plaintext query that will be prepared.
+     * @param array $parameter_types An array containing mysqli types of each parameter to describe parameters of the query.
+     * @param array $parameters An array containing values of each parameter that will be used in the query.
+     * @throws DatabaseActionException Thrown when unable to execute the query, for example unique field repeated in update query.
      * @throws InvalidPrimaryKeyException Thrown when the query changed nothing, for example:
      *                                    - none of the record requested to remove was present in the table before executing query
      *                                    - none of the record has been updated due to invalid primary key
      */
     private function execute_query(string $query, array $parameter_types, array $parameters)
     {
-        $parameter_types = implode($parameter_types);
+        $query = $this->prepare_query($query, $parameter_types, $parameters);
 
-        if ($query = $this->mysqli->prepare($query))
+        try
         {
-            $query->bind_param($parameter_types, ...$parameters);
-
-            try
+            if ($query->execute())
             {
-                $this->execute_prepared_query($query);
+                if ($query->affected_rows == 0)
+                {
+                    throw new InvalidPrimaryKeyException();
+                }
             }
-            finally
+            else
             {
-                $query->close();
+                throw new DatabaseActionException();
             }
         }
-        else
+        finally
         {
-            throw new DatabaseActionException();
+            $query->close();
         }
     }
 
     /**
-     * @param mysqli_stmt $query A prepared query that will be executed.
-     * @throws DatabaseActionException Thrown when unable to execute the query, for example is not prepared well.
-     * @throws InvalidPrimaryKeyException Thrown when the query changed nothing, for example:
-     *                                    - none of the record requested to remove was present in the table before executing query
-     *                                    - none of the record has been updated due to invalid primary key
-     */
-    private function execute_prepared_query(mysqli_stmt $query)
-    {
-        if ($result = $query->execute())
-        {
-            if ($query->affected_rows == 0)
-            {
-                throw new InvalidPrimaryKeyException();
-            }
-        }
-        else
-        {
-            throw new DatabaseActionException();
-        }
-    }
-
-    /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be updated.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be updated.
      * @param mixed $entry An associative array representing a record stored in the table.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
      * @throws DatabaseActionException Thrown when unable to execute query updating the table.
      * @throws InvalidPrimaryKeyException Thrown when none of the record has been updated due to invalid primary key.
      */
-    public function update(PrimaryKey $primary_key, array $entry): void
+    public function update($primary_key_value, array $entry): void
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
         $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
         $values = array_values($entry);
 
         $parameter_types = $this->get_mysql_types_of($values);
-        $primary_key_value = $primary_key->get_value();
         $primary_key_identifier_type = $this->get_mysql_type_of($primary_key_value);
 
         $parameter_types = array_merge($parameter_types, [$primary_key_identifier_type]);
@@ -202,28 +225,27 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be removed.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be removed.
      * @throws DatabaseActionException Thrown when unable to execute query removing record identified by $primary_key_value.
      * @throws InvalidPrimaryKeyException Thrown when the query removed nothing.
      */
-    public function remove(PrimaryKey $primary_key): void
+    public function remove($primary_key_value): void
     {
         $query = "DELETE FROM `{$this->name}` WHERE {$this->primary_key_name} = ?;";
-        $primary_key_value = $primary_key->get_value();
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
     }
 
     /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be selected.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be selected.
      * @return array An associative array representing a record stored in the table.
      *               Each element of the array is pointing from the column name to value: "column-name" => "value".
      * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the database.
      */
-    public function select(PrimaryKey $primary_key): array
+    public function select($primary_key_value): array
     {
-        $query = $this->select_query($primary_key);
+        $query = $this->select_query($primary_key_value);
         $query->execute();
 
         if ($result = $query->get_result())
@@ -238,12 +260,11 @@ class MySQLiDatabaseTable implements DatabaseTable
     }
 
     /**
-     * @param PrimaryKey $primary_key A primary key identifying record which data will be selected.
+     * @param mixed $primary_key_value A primary key identifying record which data will be selected.
      * @return mysqli_stmt An object representing prepared query responsible for selecting data from the database.
      */
-    private function select_query(PrimaryKey $primary_key): mysqli_stmt
+    private function select_query($primary_key_value): mysqli_stmt
     {
-        $primary_key_value = $primary_key->get_value();
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $query = "SELECT * FROM `{$this->name}` WHERE {$this->primary_key_name} = ?";

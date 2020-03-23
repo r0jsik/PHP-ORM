@@ -1,8 +1,6 @@
 <?php
 namespace Source\Database\Table;
 
-use Source\Core\PrimaryKey;
-
 /**
  * Interface DatabaseTable
  * @package Source\Database\Table
@@ -12,29 +10,30 @@ use Source\Core\PrimaryKey;
 interface DatabaseTable
 {
     /**
-     * @param PrimaryKey $primary_key A primary key that will be updated after successful insert.
      * @param array $entry An associative array representing a record that will be inserted to the table.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
+     * @return int Unique value of inserted record's primary key.
+     *             If the table has an autoincrement index, value of the index will be returned.
      */
-    public function insert(PrimaryKey $primary_key, array $entry): void;
+    public function insert(array $entry): int;
 
     /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be updated.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be updated.
      * @param array $entry An associative array representing a record that will replace record
      *                     which primary key's value is equal the $primary_key_value.
      *                     Each element of the array is pointing from the column name to value: "column-name" => "value".
      */
-    public function update(PrimaryKey $primary_key, array $entry): void;
+    public function update($primary_key_value, array $entry): void;
 
     /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be removed.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be removed.
      */
-    public function remove(PrimaryKey $primary_key): void;
+    public function remove($primary_key_value): void;
 
     /**
-     * @param PrimaryKey $primary_key A primary key pointing to the record that will be selected.
+     * @param mixed $primary_key_value A primary key pointing to the record that will be selected.
      * @return array An associative array representing a record stored in the table.
      *               Each element of the array is pointing from the column name to value: "column-name" => "value".
      */
-    public function select(PrimaryKey $primary_key): array;
+    public function select($primary_key_value): array;
 }
