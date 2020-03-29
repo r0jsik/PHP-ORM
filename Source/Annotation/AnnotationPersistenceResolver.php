@@ -4,10 +4,8 @@ namespace Source\Annotation;
 use Generator;
 use ReflectionClass;
 use ReflectionException;
-use ReflectionProperty;
 use Source\Core\PersistenceResolver;
-use Source\Core\PrimaryKey;
-use Source\Core\ReflectedPrimaryKey;
+use Source\Core\PropertyProxy;
 
 /**
  * Class AnnotationPersistenceResolver
@@ -86,26 +84,33 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
     /**
      * @param mixed $object An object that will be examined.
-     * @return array An array of the $object's class fields.
-     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     * @return array An array of the object's properties.
+     * @throws ReflectionException Thrown when unable to reflect object's class.
      */
     private function get_properties_of($object): array
     {
         $reflection = new ReflectionClass($object);
         $properties = $reflection->getProperties();
 
-        return $properties;
+        $property_proxies = array();
+
+        foreach ($properties as $property)
+        {
+            $property_proxies[] = new PropertyProxy($property, $object);
+        }
+
+        return $property_proxies;
     }
 
     /**
-     * @param ReflectionProperty $property The property that will be examined.
+     * @param PropertyProxy $property The property that will be examined.
      * @return Generator An object generating column definitions, for example:
      *                   field annotated as a @Column(name) will have generated definition as "Column" => "name" map.
      * @throws AnnotationNotFoundException Thrown when $property field is not annotated.
      */
-    private function get_column_definition_generator(ReflectionProperty $property): Generator
+    private function get_column_definition_generator(PropertyProxy $property): Generator
     {
-        $doc_string = $property->getDocComment();
+        $doc_string = $property->get_documentation();
         $pattern = "/@(\w+)(\((.*)\))?/";
         $matches = array();
 
@@ -132,11 +137,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
     /**
      * @param mixed $object An examined object.
-     * @return PrimaryKey The primary key.
+     * @return PropertyProxy The primary key.
      * @throws AnnotationNotFoundException Thrown when none of the $object's class' field is annotated by the @PrimaryKey annotation.
      * @throws ReflectionException Thrown when unable to reflect $object's class.
      */
-    public function resolve_primary_key($object): PrimaryKey
+    public function resolve_primary_key($object): PropertyProxy
     {
         $properties = $this->get_properties_of($object);
 
@@ -144,7 +149,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         {
             if ($this->is_annotated($property, "PrimaryKey"))
             {
-                return new ReflectedPrimaryKey($object, $property);
+                return $property;
             }
         }
 
@@ -152,13 +157,13 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param ReflectionProperty $property The field that will be examined.
+     * @param PropertyProxy $property The property that will be examined.
      * @param string $annotation_name A name of the annotation that will be searched in the $property field's documentation comment.
      * @return bool A flag checking if the field is annotated by the Annotation named as $annotation_name.
      */
-    private function is_annotated(ReflectionProperty $property, string $annotation_name): bool
+    private function is_annotated(PropertyProxy $property, string $annotation_name): bool
     {
-        return preg_match("/@$annotation_name/", $property->getDocComment());
+        return preg_match("/@$annotation_name/", $property->get_documentation());
     }
 
     /**
@@ -176,35 +181,20 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
         foreach ($properties as $property)
         {
-            $fields_map[$this->get_column_name($property)] = $this->get_value_of_property($property, $object);
+            $fields_map[$this->get_column_name($property)] = $property->get_value();
         }
 
         return $fields_map;
     }
 
     /**
-     * @param ReflectionProperty $property An examined field.
+     * @param PropertyProxy $property An examined field.
      * @return string The content of the @Column annotation assigned to the examined field.
      * @throws AnnotationNotFoundException Thrown when field is not annotated by the @Column annotation.
      */
-    private function get_column_name(ReflectionProperty $property): string
+    private function get_column_name(PropertyProxy $property): string
     {
-        return $this->extract_annotation_value($property->getDocComment(), "Column");
-    }
-
-    /**
-     * @param ReflectionProperty $property A field of the object that will be examined.
-     * @param mixed $object An object that will be examined.
-     * @return mixed The value of the $object's field.
-     */
-    private function get_value_of_property(ReflectionProperty $property, $object)
-    {
-        $is_accessible = $property->isPublic();
-        $property->setAccessible(true);
-        $value = $property->getValue($object);
-        $property->setAccessible($is_accessible);
-
-        return $value;
+        return $this->extract_annotation_value($property->get_documentation(), "Column");
     }
 
     /**
@@ -222,20 +212,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
             $column_name = $this->get_column_name($property);
             $value = $entry[$column_name];
 
-            $this->set_value_of_property($property, $object, $value);
+            $property->set_value($value);
         }
-    }
-
-    /**
-     * @param ReflectionProperty $property A field of the object that will be updated.
-     * @param mixed $object An object which property's value will be updated.
-     * @param mixed $value The value that will be applied to the property.
-     */
-    private function set_value_of_property(ReflectionProperty $property, $object, $value)
-    {
-        $is_accessible = $property->isPublic();
-        $property->setAccessible(true);
-        $property->setValue($object, $value);
-        $property->setAccessible($is_accessible);
     }
 }

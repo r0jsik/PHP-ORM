@@ -23,9 +23,9 @@ interface PersistenceResolver
 
     /**
      * @param mixed $object An object that will be examined.
-     * @return PrimaryKey The primary key.
+     * @return PropertyProxy The primary key.
      */
-    public function resolve_primary_key($object): PrimaryKey;
+    public function resolve_primary_key($object): PropertyProxy;
 
     /**
      * @param mixed $object An object that will be examined.
