@@ -46,7 +46,7 @@ class Client
      */
     private $email;
 
-    public function __construct($name, $surname, $phone, $email)
+    public function set($name, $surname, $phone, $email)
     {
         $this->name = $name;
         $this->surname = $surname;

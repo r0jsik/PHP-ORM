@@ -23,4 +23,12 @@ interface PersistenceService
      * @param mixed $object An object that will be removed from the persistence data structure.
      */
     public function remove($object): void;
+
+    /**
+     * @param string $class Path to the class of the retrieved object. Informs about type of the object.
+     * @param mixed $primary_key_value An value of the primary key, pointing to the data source
+     *                                 from which the object will be constructed.
+     * @return mixed The constructed object.
+     */
+    public function select(string $class, $primary_key_value);
 }

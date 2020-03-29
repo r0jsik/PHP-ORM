@@ -98,4 +98,30 @@ class LoggingPersistenceService implements PersistenceService
             $this->log("Exception occurred while removing object:", $exception);
         }
     }
+
+    /**
+     * @param string $class Path to the class of the retrieved object. Informs about type of the object.
+     * @param mixed $primary_key_value An value of the primary key, pointing to the data source
+     *                                 from which the object will be constructed.
+     * @return mixed The constructed object.
+     */
+    public function select(string $class, $primary_key_value)
+    {
+        $object = null;
+
+        try
+        {
+            $this->log("Selecting object from the database...");
+
+            $object = $this->persistence_service->select($class, $primary_key_value);
+
+            $this->log("Selected successfully");
+        }
+        catch (Exception $exception)
+        {
+            $this->log("Exception occurred while selecting object:", $exception);
+        }
+
+        return $object;
+    }
 }

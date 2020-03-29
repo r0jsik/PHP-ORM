@@ -193,7 +193,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param ReflectionProperty $property A field of the $object's that will be examined.
+     * @param ReflectionProperty $property A field of the object that will be examined.
      * @param mixed $object An object that will be examined.
      * @return mixed The value of the $object's field.
      */
@@ -205,5 +205,37 @@ class AnnotationPersistenceResolver implements PersistenceResolver
         $property->setAccessible($is_accessible);
 
         return $value;
+    }
+
+    /**
+     * @param mixed $object An object that data will be applied to.
+     * @param array $entry An associative array mapping field's name to its value.
+     * @throws AnnotationNotFoundException Thrown when some field in not annotated by the @Column annotation.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     */
+    public function apply($object, array $entry): void
+    {
+        $properties = $this->get_properties_of($object);
+
+        foreach ($properties as $property)
+        {
+            $column_name = $this->get_column_name($property);
+            $value = $entry[$column_name];
+
+            $this->set_value_of_property($property, $object, $value);
+        }
+    }
+
+    /**
+     * @param ReflectionProperty $property A field of the object that will be updated.
+     * @param mixed $object An object which property's value will be updated.
+     * @param mixed $value The value that will be applied to the property.
+     */
+    private function set_value_of_property(ReflectionProperty $property, $object, $value)
+    {
+        $is_accessible = $property->isPublic();
+        $property->setAccessible(true);
+        $property->setValue($object, $value);
+        $property->setAccessible($is_accessible);
     }
 }

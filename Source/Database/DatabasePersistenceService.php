@@ -1,6 +1,8 @@
 <?php
 namespace Source\Database;
 
+use ArgumentCountError;
+use PHPUnit\Util\Exception;
 use Source\Core\PersistenceResolver;
 use Source\Core\PersistenceService;
 use Source\Database\Table\DatabaseTable;
@@ -102,5 +104,41 @@ class DatabasePersistenceService implements PersistenceService
 
         $table = $this->choose_table($table_name, $object);
         $table->remove($primary_key_value);
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object. Informs about type of the object.
+     * @param mixed $primary_key_value An value of the primary key, pointing to the record from which data will be used
+     *                                 to create retrieved object.
+     * @return mixed An object constructed using data from the database.
+     */
+    public function select(string $class, $primary_key_value)
+    {
+        $object = $this->create_object($class);
+        $table_name = $this->persistence_resolver->resolve_table_name($object);
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key_name = $primary_key->get_name();
+        $table = $this->database->choose_table($table_name, $primary_key_name);
+        $entry = $table->select($primary_key_value);
+
+        $this->persistence_resolver->apply($object, $entry);
+
+        return $object;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object. Informs about type of the object.
+     * @return mixed The constructed object. It's constructor cannot take any obligatory arguments.
+     */
+    private function create_object($class)
+    {
+        try
+        {
+            return new $class();
+        }
+        catch (ArgumentCountError $exception)
+        {
+            throw new Exception();
+        }
     }
 }

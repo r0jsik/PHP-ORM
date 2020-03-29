@@ -32,4 +32,10 @@ interface PersistenceResolver
      * @return array An associative array mapping column names to corresponding field values.
      */
     public function resolve_as_entry($object): array;
+
+    /**
+     * @param mixed $object An object that data will be applied to.
+     * @param array $entry An associative array mapping field's name to its value.
+     */
+    public function apply($object, array $entry): void;
 }
