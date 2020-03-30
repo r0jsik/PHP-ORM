@@ -37,4 +37,12 @@ interface PersistenceService
      * @return array An array containing constructed objects.
      */
     public function select_all(string $class): array;
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function accepting an associative array mapping column names to field values.
+     *                         Objects will be created only for the entries for which this function returns true.
+     * @return array An array containing constructed objects.
+     */
+    public function select_filtered(string $class, callable $filter): array;
 }

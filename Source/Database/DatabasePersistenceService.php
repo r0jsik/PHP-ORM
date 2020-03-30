@@ -161,7 +161,7 @@ class DatabasePersistenceService implements PersistenceService
     /**
      * @param string $class Path to the class of the retrieved objects.
      * @param array $entries An array of associative arrays mapping column names to field values.
-     * @return array An array of the constructed objects.
+     * @return array An array containing constructed objects.
      */
     private function convert_to_objects(string $class, array $entries): array
     {
@@ -188,5 +188,22 @@ class DatabasePersistenceService implements PersistenceService
         $this->object_factory->apply_properties($entry, $properties);
 
         return $object;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function accepting an associative array mapping column names to field values.
+     *                         Objects will be created only for the entries for which this function returns true.
+     * @return array An array containing constructed objects.
+     */
+    public function select_filtered(string $class, callable $filter): array
+    {
+        $object = $this->object_factory->instantiate($class);
+        $table = $this->choose_table_for($object);
+        $entries = $table->select_all();
+        $entries = array_filter($entries, $filter);
+        $objects = $this->convert_to_objects($class, $entries);
+
+        return $objects;
     }
 }

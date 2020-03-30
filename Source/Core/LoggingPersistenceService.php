@@ -148,4 +148,30 @@ class LoggingPersistenceService implements PersistenceService
 
         return $objects;
     }
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function accepting an associative array mapping column names to field values.
+     *                         Objects will be created only for the entries for which this function returns true.
+     * @return array An array containing constructed objects.
+     */
+    public function select_filtered(string $class, callable $filter): array
+    {
+        $objects = array();
+
+        try
+        {
+            $this->log("Selecting objects from the database using filter...");
+
+            $objects = $this->persistence_service->select_filtered($class, $filter);
+
+            $this->log("Selected successfully");
+        }
+        catch (Exception $exception)
+        {
+            $this->log("Exception occurred while selecting objects:", $exception);
+        }
+
+        return $objects;
+    }
 }
