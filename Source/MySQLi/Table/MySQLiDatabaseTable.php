@@ -273,4 +273,18 @@ class MySQLiDatabaseTable implements DatabaseTable
 
         return $query;
     }
+
+    /**
+     * @return array An array of associative arrays representing records stored in the table.
+     *               Each element of the associative array is pointing from the column name to value:
+     *               "column-name" => "value".
+     */
+    public function select_all(): array
+    {
+        $query = "SELECT * FROM {$this->name}";
+        $result = $this->mysqli->query($query);
+        $entries = $result->fetch_all(MYSQLI_ASSOC);
+        
+       return $entries;
+    }
 }

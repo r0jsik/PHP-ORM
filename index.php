@@ -34,6 +34,12 @@ $persistence_service->update($client_1);
 $client_2->setName("Updated name");
 $persistence_service->update($client_2);
 
+$clients = $persistence_service->select_all(Source\User\Client::class);
+
+echo "<pre>";
+var_dump($clients);
+echo "</pre>";
+
 $persistence_service->remove($client_1);
 $persistence_service->remove($client_2);
 

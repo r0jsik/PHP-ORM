@@ -121,7 +121,7 @@ class DatabasePersistenceService implements PersistenceService
     public function select(string $class, $primary_key_value)
     {
         $object = $this->object_factory->instantiate($class);
-        $table = $this->select_table_for($object);
+        $table = $this->choose_table_for($object);
         $entry = $table->select($primary_key_value);
         $properties = $this->persistence_resolver->resolve_column_to_properties_map($object);
 
@@ -134,7 +134,7 @@ class DatabasePersistenceService implements PersistenceService
      * @param object $object An examined object.
      * @return DatabaseTable The selected table.
      */
-    private function select_table_for($object): DatabaseTable
+    private function choose_table_for($object): DatabaseTable
     {
         $table_name = $this->persistence_resolver->resolve_table_name($object);
         $primary_key = $this->persistence_resolver->resolve_primary_key($object);
@@ -142,5 +142,51 @@ class DatabasePersistenceService implements PersistenceService
         $table = $this->database->choose_table($table_name, $primary_key_name);
 
         return $table;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved objects. Informs about type of the objects.
+     * @return array An array containing constructed objects.
+     */
+    public function select_all(string $class): array
+    {
+        $object = $this->object_factory->instantiate($class);
+        $table = $this->choose_table_for($object);
+        $entries = $table->select_all();
+        $objects = $this->convert_to_objects($class, $entries);
+
+        return $objects;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved objects.
+     * @param array $entries An array of associative arrays mapping column names to field values.
+     * @return array An array of the constructed objects.
+     */
+    private function convert_to_objects(string $class, array $entries): array
+    {
+        $objects = array();
+
+        foreach ($entries as $entry)
+        {
+            $objects[] = $this->convert_to_object($class, $entry);
+        }
+
+        return $objects;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param array $entry An associative array mapping column names to field values.
+     * @return object The constructed object.
+     */
+    private function convert_to_object(string $class, array $entry)
+    {
+        $object = $this->object_factory->instantiate($class);
+        $properties = $this->persistence_resolver->resolve_column_to_properties_map($object);
+
+        $this->object_factory->apply_properties($entry, $properties);
+
+        return $object;
     }
 }

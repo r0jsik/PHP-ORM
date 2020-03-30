@@ -31,4 +31,10 @@ interface PersistenceService
      * @return object The constructed object.
      */
     public function select(string $class, $primary_key_value);
+
+    /**
+     * @param string $class Path to the class of the retrieved objects. Informs about type of the objects.
+     * @return array An array containing constructed objects.
+     */
+    public function select_all(string $class): array;
 }

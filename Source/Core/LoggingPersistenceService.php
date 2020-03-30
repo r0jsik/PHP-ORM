@@ -124,4 +124,28 @@ class LoggingPersistenceService implements PersistenceService
 
         return $object;
     }
+
+    /**
+     * @param string $class Path to the class of the retrieved objects. Informs about type of the objects.
+     * @return array An array containing constructed objects.
+     */
+    public function select_all(string $class): array
+    {
+        $objects = array();
+
+        try
+        {
+            $this->log("Selecting objects from the database...");
+
+            $objects = $this->persistence_service->select_all($class);
+
+            $this->log("Selected successfully");
+        }
+        catch (Exception $exception)
+        {
+            $this->log("Exception occurred while selecting objects:", $exception);
+        }
+
+        return $objects;
+    }
 }
