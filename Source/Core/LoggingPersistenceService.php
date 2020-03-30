@@ -25,7 +25,7 @@ class LoggingPersistenceService implements PersistenceService
     }
 
     /**
-     * @param mixed $object An object that is inserted into the PersistenceService.
+     * @param object $object An object that is inserted into the PersistenceService.
      */
     public function insert($object): void
     {
@@ -62,7 +62,7 @@ class LoggingPersistenceService implements PersistenceService
     }
 
     /**
-     * @param mixed $object An object that will be updated by the PersistenceService.
+     * @param object $object An object that will be updated by the PersistenceService.
      */
     public function update($object): void
     {
@@ -81,7 +81,7 @@ class LoggingPersistenceService implements PersistenceService
     }
 
     /**
-     * @param mixed $object An object that will be removed from the PersistenceService.
+     * @param object $object An object that will be removed from the PersistenceService.
      */
     public function remove($object): void
     {
@@ -103,7 +103,7 @@ class LoggingPersistenceService implements PersistenceService
      * @param string $class Path to the class of the retrieved object. Informs about type of the object.
      * @param mixed $primary_key_value An value of the primary key, pointing to the data source
      *                                 from which the object will be constructed.
-     * @return mixed The constructed object.
+     * @return object The constructed object.
      */
     public function select(string $class, $primary_key_value)
     {

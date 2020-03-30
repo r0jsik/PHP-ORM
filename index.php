@@ -7,13 +7,15 @@ spl_autoload_register(function ($path) {
 
 use Source\Annotation\AnnotationPersistenceResolver;
 use Source\Core\LoggingPersistenceService;
+use Source\Core\ObjectFactory;
 use Source\Database\DatabasePersistenceService;
 use Source\MySQLi\MySQLiDatabase;
 use Source\User\Client;
 
 $database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
 $persistence_resolver = new AnnotationPersistenceResolver();
-$persistence_service = new DatabasePersistenceService($database, $persistence_resolver);
+$object_factory = new ObjectFactory();
+$persistence_service = new DatabasePersistenceService($database, $persistence_resolver, $object_factory);
 $persistence_service = new LoggingPersistenceService($persistence_service);
 
 $client_1 = new Client();

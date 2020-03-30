@@ -10,32 +10,32 @@ namespace Source\Core;
 interface PersistenceResolver
 {
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return string A name of the table pointed by the $object's class.
      */
     public function resolve_table_name($object): string;
 
     /**
-     * @param mixed $object An object that will be examined.
-     * @return array An array of the ColumnDefinition that defines columns required by the $object's class' fields.
+     * @param object $object An object that will be examined.
+     * @return array An array of the ColumnDefinition defining columns required by the $object's class fields.
      */
     public function resolve_column_definitions($object): array;
 
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return PropertyProxy The primary key.
      */
     public function resolve_primary_key($object): PropertyProxy;
 
     /**
-     * @param mixed $object An object that will be examined.
-     * @return array An associative array mapping column names to corresponding field values.
+     * @param object $object An object that will be examined.
+     * @return array An associative array mapping column names to corresponding PropertyProxy objects.
      */
-    public function resolve_as_entry($object): array;
+    public function resolve_column_to_properties_map($object): array;
 
     /**
-     * @param mixed $object An object that data will be applied to.
-     * @param array $entry An associative array mapping field's name to its value.
+     * @param object $object An object that will be examined.
+     * @return array An associative array mapping column names to corresponding field values.
      */
-    public function apply($object, array $entry): void;
+    public function resolve_column_to_values_map($object): array;
 }

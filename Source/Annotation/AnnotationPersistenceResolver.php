@@ -16,7 +16,7 @@ use Source\Core\PropertyProxy;
 class AnnotationPersistenceResolver implements PersistenceResolver
 {
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return string A name of the table resolved as a value of the @Table annotation assigned to the $object's class.
      * @throws AnnotationNotFoundException Thrown when the $object's class is not annotated by the @Table annotation.
      * @throws ReflectionException Thrown when unable to resolve $object's class.
@@ -30,7 +30,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return string A documentation comment assigned to the $object's class.
      * @throws ReflectionException Thrown when unable to reflect $object's class.
      */
@@ -62,7 +62,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return array An array of the AnnotatedColumnDefinition that defines each column of the $object's fields.
      * @throws AnnotationNotFoundException Thrown when some field of the $object's class is not annotated.
      * @throws ReflectionException Thrown when unable to reflect $object's class.
@@ -83,7 +83,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that will be examined.
+     * @param object $object An object that will be examined.
      * @return array An array of the object's properties.
      * @throws ReflectionException Thrown when unable to reflect object's class.
      */
@@ -136,7 +136,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An examined object.
+     * @param object $object An object that will be examined.
      * @return PropertyProxy The primary key.
      * @throws AnnotationNotFoundException Thrown when none of the $object's class' field is annotated by the @PrimaryKey annotation.
      * @throws ReflectionException Thrown when unable to reflect $object's class.
@@ -167,24 +167,24 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that will be examined.
-     * @return array An associative array mapping @Column's annotation value to the field's value, for example:
-     *               Field with "example value" value that is annotated by the @Column(column-name) annotation will be mapped as:
-     *               "column-name" => "example value"
+     * @param object $object An object that will be examined.
+     * @return array An associative array mapping column names to PropertyProxy fields, for example:
+     *               Property of the class that is annotated by the @Column(column-name) annotation will be mapped as:
+     *               "column-name" => PropertyProxy(Property)
      * @throws ReflectionException Thrown when unable to reflect $object's class.
-     * @throws AnnotationNotFoundException Thrown when some field of the $object is not annotated by the @Column annotation.
+     * @throws AnnotationNotFoundException Thrown when some property is not annotated by the @Column annotation.
      */
-    public function resolve_as_entry($object): array
+    public function resolve_column_to_properties_map($object): array
     {
         $properties = $this->get_properties_of($object);
-        $fields_map = array();
+        $map = array();
 
         foreach ($properties as $property)
         {
-            $fields_map[$this->get_column_name($property)] = $property->get_value();
+            $map[$this->get_column_name($property)] = $property;
         }
 
-        return $fields_map;
+        return $map;
     }
 
     /**
@@ -198,21 +198,23 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     }
 
     /**
-     * @param mixed $object An object that data will be applied to.
-     * @param array $entry An associative array mapping field's name to its value.
-     * @throws AnnotationNotFoundException Thrown when some field in not annotated by the @Column annotation.
+     * @param object $object An object that will be examined.
+     * @return array An associative array mapping @Column's annotation value to the field's value, for example:
+     *               Field with "example value" value that is annotated by the @Column(column-name) annotation will be mapped as:
+     *               "column-name" => "example value"
      * @throws ReflectionException Thrown when unable to reflect $object's class.
+     * @throws AnnotationNotFoundException Thrown when some field of the $object is not annotated by the @Column annotation.
      */
-    public function apply($object, array $entry): void
+    public function resolve_column_to_values_map($object): array
     {
         $properties = $this->get_properties_of($object);
+        $map = array();
 
         foreach ($properties as $property)
         {
-            $column_name = $this->get_column_name($property);
-            $value = $entry[$column_name];
-
-            $property->set_value($value);
+            $map[$this->get_column_name($property)] = $property->get_value();
         }
+
+        return $map;
     }
 }
