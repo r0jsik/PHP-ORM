@@ -5,6 +5,7 @@ use Source\Core\ObjectFactory;
 use Source\Core\PersistenceResolver;
 use Source\Core\PersistenceService;
 use Source\Database\Table\DatabaseTable;
+use ArgumentCountError;
 
 /**
  * Class DatabasePersistenceService
@@ -117,6 +118,7 @@ class DatabasePersistenceService implements PersistenceService
      * @param mixed $primary_key_value An value of the primary key, pointing to the record from which data will be used
      *                                 to create retrieved object.
      * @return object An object constructed using data from the database.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     public function select(string $class, $primary_key_value)
     {
@@ -147,6 +149,7 @@ class DatabasePersistenceService implements PersistenceService
     /**
      * @param string $class Path to the class of the retrieved objects. Informs about type of the objects.
      * @return array An array containing constructed objects.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     public function select_all(string $class): array
     {
@@ -162,6 +165,7 @@ class DatabasePersistenceService implements PersistenceService
      * @param string $class Path to the class of the retrieved objects.
      * @param array $entries An array of associative arrays mapping column names to field values.
      * @return array An array containing constructed objects.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     private function convert_to_objects(string $class, array $entries): array
     {
@@ -179,6 +183,7 @@ class DatabasePersistenceService implements PersistenceService
      * @param string $class Path to the class of the retrieved object.
      * @param array $entry An associative array mapping column names to field values.
      * @return object The constructed object.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     private function convert_to_object(string $class, array $entry)
     {
@@ -195,13 +200,33 @@ class DatabasePersistenceService implements PersistenceService
      * @param callable $filter A function accepting an associative array mapping column names to field values.
      *                         Objects will be created only for the entries for which this function returns true.
      * @return array An array containing constructed objects.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
-    public function select_filtered(string $class, callable $filter): array
+    public function select_individually(string $class, callable $filter): array
     {
         $object = $this->object_factory->instantiate($class);
         $table = $this->choose_table_for($object);
         $entries = $table->select_all();
         $entries = array_filter($entries, $filter);
+        $objects = $this->convert_to_objects($class, $entries);
+
+        return $objects;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function returning the condition which will be appended after the WHERE clause.
+     *                         Accepts an associative array mapping object's property names to column names.
+     * @return array An array containing constructed objects.
+     * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
+     */
+    public function select_on_condition(string $class, callable $filter): array
+    {
+        $object = $this->object_factory->instantiate($class);
+        $column_names = $this->persistence_resolver->resolve_property_to_column_names_map($object);
+        $condition = $filter($column_names);
+        $table = $this->choose_table_for($object);
+        $entries = $table->select_where($condition);
         $objects = $this->convert_to_objects($class, $entries);
 
         return $objects;

@@ -40,9 +40,17 @@ interface PersistenceService
 
     /**
      * @param string $class Path to the class of the retrieved object.
-     * @param callable $filter A function accepting an associative array mapping column names to field values.
+     * @param callable $filter A function accepting an associative array mapping property names to values.
      *                         Objects will be created only for the entries for which this function returns true.
      * @return array An array containing constructed objects.
      */
-    public function select_filtered(string $class, callable $filter): array;
+    public function select_individually(string $class, callable $filter): array;
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function returning the condition which will be appended after the WHERE clause.
+     *                         Accepts an associative array mapping object's property names to data structure's property names.
+     * @return array An array containing constructed objects.
+     */
+    public function select_on_condition(string $class, callable $filter): array;
 }

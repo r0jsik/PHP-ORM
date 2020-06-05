@@ -43,4 +43,12 @@ interface DatabaseTable
      *               "column-name" => "value".
      */
     public function select_all(): array;
+
+    /**
+     * @param string $condition A condition that will be appended after WHERE clause to the query.
+     * @return array An array of associative arrays representing records stored in the table.
+     *               Each element of the associative array is pointing from the column name to value:
+     *               "column-name" => "value".
+     */
+    public function select_where(string $condition): array;
 }

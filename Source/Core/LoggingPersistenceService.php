@@ -155,15 +155,41 @@ class LoggingPersistenceService implements PersistenceService
      *                         Objects will be created only for the entries for which this function returns true.
      * @return array An array containing constructed objects.
      */
-    public function select_filtered(string $class, callable $filter): array
+    public function select_individually(string $class, callable $filter): array
     {
         $objects = array();
 
         try
         {
-            $this->log("Selecting objects from the database using filter...");
+            $this->log("Selecting objects from the database individually...");
 
-            $objects = $this->persistence_service->select_filtered($class, $filter);
+            $objects = $this->persistence_service->select_individually($class, $filter);
+
+            $this->log("Selected successfully");
+        }
+        catch (Exception $exception)
+        {
+            $this->log("Exception occurred while selecting objects:", $exception);
+        }
+
+        return $objects;
+    }
+
+    /**
+     * @param string $class Path to the class of the retrieved object.
+     * @param callable $filter A function returning the condition which will be appended after the WHERE clause.
+     *                         Accepts an associative array mapping object's property names to data structure's property names.
+     * @return array An array containing constructed objects.
+     */
+    public function select_on_condition(string $class, callable $filter): array
+    {
+        $objects = array();
+
+        try
+        {
+            $this->log("Selecting objects from the database using condition...");
+
+            $objects = $this->persistence_service->select_on_condition($class, $filter);
 
             $this->log("Selected successfully");
         }

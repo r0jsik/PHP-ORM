@@ -199,6 +199,25 @@ class AnnotationPersistenceResolver implements PersistenceResolver
 
     /**
      * @param object $object An object that will be examined.
+     * @return array An associative array mapping object's property names to corresponding column names.
+     * @throws ReflectionException Thrown when unable to reflect $object's class.
+     * @throws AnnotationNotFoundException Thrown when some field of the $object is not annotated by the @Column annotation.
+     */
+    public function resolve_property_to_column_names_map($object): array
+    {
+        $properties = $this->get_properties_of($object);
+        $map = array();
+
+        foreach ($properties as $property)
+        {
+            $map[$property->get_name()] = $this->get_column_name($property);
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param object $object An object that will be examined.
      * @return array An associative array mapping @Column's annotation value to the field's value, for example:
      *               Field with "example value" value that is annotated by the @Column(column-name) annotation will be mapped as:
      *               "column-name" => "example value"

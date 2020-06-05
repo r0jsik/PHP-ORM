@@ -35,6 +35,12 @@ interface PersistenceResolver
 
     /**
      * @param object $object An object that will be examined.
+     * @return array An associative array mapping object's property names to corresponding column names.
+     */
+    public function resolve_property_to_column_names_map($object): array;
+
+    /**
+     * @param object $object An object that will be examined.
      * @return array An associative array mapping column names to corresponding field values.
      */
     public function resolve_column_to_values_map($object): array;
