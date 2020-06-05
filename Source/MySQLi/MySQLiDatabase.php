@@ -5,6 +5,7 @@ use mysqli;
 use mysqli_stmt;
 use Source\Database\Database;
 use Source\Database\DatabaseActionException;
+use Source\Database\DatabaseConnectionException;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\TableNotFoundException;
 use Source\MySQLi\Table\MySQLiColumnDescriptor;
@@ -38,12 +39,33 @@ class MySQLiDatabase implements Database
      * @param string $username An username of the user that database will be connected as.
      * @param string $password A password of the user connected to the database.
      * @param string $database_name A name of the database from which data will be received.
+     * @throws DatabaseConnectionException Thrown when unable to connect to the database.
      */
     public function __construct(string $host, string $username, string $password, string $database_name)
     {
-        $this->mysqli = new mysqli($host, $username, $password, $database_name);
+        $this->mysqli = $this->open_connection($host, $username, $password, $database_name);
         $this->database_name = $database_name;
         $this->column_descriptor = new MySQLiColumnDescriptor();
+    }
+
+    /**
+     * @param string $host An address of the database host.
+     * @param string $username An username of the user that database will be connected as.
+     * @param string $password A password of the user connected to the database.
+     * @param string $database_name A name of the database from which data will be received.
+     * @return mysqli A connection.
+     * @throws DatabaseConnectionException Thrown when unable to connect to the database.
+     */
+    private function open_connection(string $host, string $username, string $password, string $database_name): mysqli
+    {
+        $mysqli = new mysqli($host, $username, $password, $database_name);
+
+        if ($mysqli->connect_errno)
+        {
+            throw new DatabaseConnectionException($mysqli->connect_errno);
+        }
+
+        return $mysqli;
     }
 
     /**
