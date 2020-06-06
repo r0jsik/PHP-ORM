@@ -18,8 +18,17 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     private $annotations;
 
+    /**
+     * @param array $annotations An associative array containing annotations with its values.
+     * @throws AnnotationNotFoundException
+     */
     public function __construct(array $annotations)
     {
+        if ( !key_exists("Type", $annotations))
+        {
+            throw new AnnotationNotFoundException();
+        }
+
         $this->annotations = $annotations;
     }
 

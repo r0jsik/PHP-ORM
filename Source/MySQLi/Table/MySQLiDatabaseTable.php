@@ -51,12 +51,12 @@ class MySQLiDatabaseTable implements DatabaseTable
     public function insert(array $entry): int
     {
         $columns = array_keys($entry);
-        $columns_placeholder = implode(", ", $columns);
+        $columns_placeholder = implode("`, `", $columns);
 
         $values = array_values($entry);
         $values_placeholder = str_repeat("?, ", sizeof($values) - 1) . "?";
 
-        $query = "INSERT INTO `{$this->name}` ($columns_placeholder) VALUES ($values_placeholder);";
+        $query = "INSERT INTO `{$this->name}` (`$columns_placeholder`) VALUES ($values_placeholder);";
         $value_types = $this->get_mysql_types_of($values);
 
         return $this->execute_insert_query($query, $value_types, $values);
@@ -218,7 +218,7 @@ class MySQLiDatabaseTable implements DatabaseTable
 
         foreach ($entry as $column => $value)
         {
-            $mapping_placeholders[] = "$column = ?";
+            $mapping_placeholders[] = "`$column` = ?";
         }
 
         return implode(", ", $mapping_placeholders);

@@ -200,4 +200,23 @@ class LoggingPersistenceService implements PersistenceService
 
         return $objects;
     }
+
+    /**
+     * @param callable $action An action that will be invoked within transaction.
+     */
+    public function within_transaction(callable $action): void
+    {
+        try
+        {
+            $this->log("Invoking a transaction...");
+
+            $this->persistence_service->within_transaction($action);
+
+            $this->log("Transaction completed successfully");
+        }
+        catch (Exception $exception)
+        {
+            $this->log("Transaction interrupted:", $exception);
+        }
+    }
 }

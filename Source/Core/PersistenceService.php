@@ -53,4 +53,10 @@ interface PersistenceService
      * @return array An array containing constructed objects.
      */
     public function select_on_condition(string $class, callable $filter): array;
+
+    /**
+     * @param callable $action An action that will be invoked within transaction.
+     *                         If the action throws an exception, the transaction will be interrupted.
+     */
+    public function within_transaction(callable $action): void;
 }

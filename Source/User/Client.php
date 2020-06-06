@@ -46,6 +46,14 @@ class Client
      */
     private $email;
 
+    /**
+     * @Column(request-id)
+     * @Type(integer)
+     * @Join(requests.id)
+     * @Unique
+     */
+    private $request_id;
+
     public function set($name, $surname, $phone, $email)
     {
         $this->name = $name;

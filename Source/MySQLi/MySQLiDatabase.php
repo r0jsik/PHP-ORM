@@ -1,6 +1,7 @@
 <?php
 namespace Source\MySQLi;
 
+use Exception;
 use mysqli;
 use mysqli_stmt;
 use Source\Database\Database;
@@ -163,6 +164,29 @@ class MySQLiDatabase implements Database
     public function remove_table(string $name): void
     {
         $this->execute_query("DROP TABLE `$name`;");
+    }
+
+    /**
+     * @param callable $action An action that will be invoked within transaction.
+     *                         If the action throws an exception, the transaction will be interrupted.
+     * @throws DatabaseActionException Thrown when unable to process the transaction.
+     * @throws Exception Thrown from the action.
+     */
+    public function within_transaction(callable $action): void
+    {
+        $this->execute_query("START TRANSACTION");
+
+        try
+        {
+            $action();
+            $this->execute_query("COMMIT");
+        }
+        catch (Exception $exception)
+        {
+            $this->execute_query("ROLLBACK");
+
+            throw $exception;
+        }
     }
 
     /**

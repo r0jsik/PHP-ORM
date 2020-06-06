@@ -231,4 +231,13 @@ class DatabasePersistenceService implements PersistenceService
 
         return $objects;
     }
+
+    /**
+     * @param callable $action An action that will be invoked within transaction.
+     *                         If the action throws an exception, the transaction will be interrupted.
+     */
+    public function within_transaction(callable $action): void
+    {
+        $this->database->within_transaction($action);
+    }
 }

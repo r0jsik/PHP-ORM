@@ -36,6 +36,12 @@ interface Database
     public function remove_table(string $name): void;
 
     /**
+     * @param callable $action An action that will be invoked within transaction.
+     *                         If the action throws an exception, the transaction will be interrupted.
+     */
+    public function within_transaction(callable $action): void;
+
+    /**
      * Closes the connection.
      */
     public function close(): void;
