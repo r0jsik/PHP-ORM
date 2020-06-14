@@ -1,71 +1,24 @@
 <?php
-namespace Source\MySQLi;
+namespace Source\PDO;
 
 use Exception;
-use mysqli;
+use PDO;
 use Source\Database\Database;
 use Source\Database\DatabaseActionException;
-use Source\Database\DatabaseConnectionException;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\TableNotFoundException;
 use Source\Database\Table\SQLColumnDescriptor;
-use Source\MySQLi\Table\MySQLiDatabaseTable;
+use Source\PDO\Table\PDODatabaseTable;
 
-/**
- * Class MySQLiDatabase
- * @package Source\MySQLi
- *
- * Represents a MySQLi-based implementation of the Database.
- */
-class MySQLiDatabase implements Database
+class PDODatabase implements Database
 {
-    /**
-     * @var mysqli An object representing driver of the database.
-     */
-    private $mysqli;
-
-    /**
-     * @var string A name of the database.
-     */
-    private $database_name;
-
-    /**
-     * @var SQLColumnDescriptor An object describing column definitions in MySQL dialect.
-     */
+    private $pdo;
     private $column_descriptor;
 
-    /**
-     * @param string $host An address of the database host.
-     * @param string $username An username of the user that database will be connected as.
-     * @param string $password A password of the user connected to the database.
-     * @param string $database_name A name of the database from which data will be received.
-     * @throws DatabaseConnectionException Thrown when unable to connect to the database.
-     */
-    public function __construct(string $host, string $username, string $password, string $database_name)
+    public function __construct(string $host, string $username, string $password, string $database_name, string $driver, string $charset = "utf8")
     {
-        $this->mysqli = $this->open_connection($host, $username, $password, $database_name);
-        $this->database_name = $database_name;
+        $this->pdo = new PDO("$driver:host=$host;dbname=$database_name;charset=$charset", $username, $password);
         $this->column_descriptor = new SQLColumnDescriptor();
-    }
-
-    /**
-     * @param string $host An address of the database host.
-     * @param string $username An username of the user that database will be connected as.
-     * @param string $password A password of the user connected to the database.
-     * @param string $database_name A name of the database from which data will be received.
-     * @return mysqli A connection.
-     * @throws DatabaseConnectionException Thrown when unable to connect to the database.
-     */
-    private function open_connection(string $host, string $username, string $password, string $database_name): mysqli
-    {
-        $mysqli = new mysqli($host, $username, $password, $database_name);
-
-        if ($mysqli->connect_errno)
-        {
-            throw new DatabaseConnectionException($mysqli->connect_errno);
-        }
-
-        return $mysqli;
     }
 
     /**
@@ -74,7 +27,7 @@ class MySQLiDatabase implements Database
      */
     public function table_exists(string $name): bool
     {
-        return $this->mysqli->query("SELECT * FROM `$name` LIMIT 0;") == true;
+        return $this->pdo->query("SELECT * FROM `$name` LIMIT 0;") == true;
     }
 
     /**
@@ -95,7 +48,7 @@ class MySQLiDatabase implements Database
      */
     private function execute_query(string $query)
     {
-        if ( !$this->mysqli->query($query))
+        if ( !$this->pdo->query($query))
         {
             throw new DatabaseActionException("Unable to execute the query");
         }
@@ -111,7 +64,7 @@ class MySQLiDatabase implements Database
     {
         if ($this->table_exists($name))
         {
-            return new MySQLiDatabaseTable($name, $primary_key_name, $this->mysqli);
+            return new PDODatabaseTable($name, $primary_key_name, $this->pdo);
         }
 
         throw new TableNotFoundException();
@@ -128,13 +81,12 @@ class MySQLiDatabase implements Database
 
     /**
      * @param callable $action An action that will be invoked within transaction.
-     *                         If the action throws an exception, the transaction will be interrupted.
-     * @throws DatabaseActionException Thrown when unable to process the transaction.
+     *                         If the action throws an exception, the transaction will be interrupted
      * @throws Exception Thrown from the action.
      */
     public function within_transaction(callable $action): void
     {
-        $this->execute_query("BEGIN");
+        $this->pdo->beginTransaction();
 
         try
         {
@@ -142,12 +94,12 @@ class MySQLiDatabase implements Database
         }
         catch (Exception $exception)
         {
-            $this->execute_query("ROLLBACK");
+            $this->pdo->rollBack();
 
             throw $exception;
         }
 
-        $this->execute_query("COMMIT");
+        $this->pdo->commit();
     }
 
     /**
@@ -155,6 +107,6 @@ class MySQLiDatabase implements Database
      */
     public function close(): void
     {
-        $this->mysqli->close();
+        $this->pdo = null;
     }
 }

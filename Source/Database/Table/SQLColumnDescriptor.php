@@ -1,20 +1,17 @@
 <?php
-namespace Source\MySQLi\Table;
-
-use Source\Database\Table\ColumnDefinition;
-use Source\Database\Table\ColumnDescriptor;
+namespace Source\Database\Table;
 
 /**
- * Class MySQLiColumnDescriptor
- * @package Source\MySQLi\Table
+ * Class SQLColumnDescriptor
+ * @package Source\Database\Table
  *
- * An implementation of the mechanism describing column definition in MySQL dialect.
+ * An implementation of the mechanism describing column definition in SQL dialect.
  */
-class MySQLiColumnDescriptor implements ColumnDescriptor
+class SQLColumnDescriptor implements ColumnDescriptor
 {
     /**
      * @param ColumnDefinition $column_definition The definition of the column that will be described.
-     * @return string The MySQL description of the column.
+     * @return string The SQL description of the column.
      */
     public function describe(ColumnDefinition $column_definition): string
     {

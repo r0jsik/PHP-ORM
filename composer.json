@@ -1,6 +1,7 @@
 {
   "require": {
-    "ext-mysqli": "*"
+    "ext-mysqli": "*",
+    "ext-pdo": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "9"

@@ -7,7 +7,7 @@ use Exception;
  * Class PrimaryKeyNotFoundException
  * @package Source\Database\Table
  *
- * This exception is thrown when the primary key has not been found by the Database or DatabaseColumn.
+ * This exception is thrown when requested primary key is not being found in the table.
  */
 class InvalidPrimaryKeyException extends Exception
 {

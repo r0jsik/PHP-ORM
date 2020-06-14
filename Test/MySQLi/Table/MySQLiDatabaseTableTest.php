@@ -173,16 +173,15 @@ class MySQLiDatabaseTableTest extends TestCase
 
         $this->table->update($this->record_id, $record);
         $selected_record = $this->table->select($this->record_id);
-        $this->assertEmpty($selected_record["col_1"]);
+        $this->assertNotNull($selected_record["col_1"]);
     }
 
     public function test_record_id_returned_from_insert()
     {
-        $record_id = 621826;
-        $record = ["id" => $record_id, "col_1" => "value", "col_2" => "value"];
+        $record = ["id" => 621826, "col_1" => "value", "col_2" => "value"];
 
-        $returned_record_id = $this->table->insert($record);
-        $this->assertEquals($record_id, $returned_record_id);
+        $record_id = $this->table->insert($record);
+        $this->assertEquals(621826, $record_id);
     }
 
     public function test_autoincrement_id_returned_from_insert()

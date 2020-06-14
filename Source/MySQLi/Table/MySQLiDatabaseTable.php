@@ -193,13 +193,13 @@ class MySQLiDatabaseTable implements DatabaseTable
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
         $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE `{$this->primary_key_name}` = ?;";
-        $values = array_values($entry);
+        $parameters = array_values($entry);
 
-        $parameter_types = $this->get_mysql_types_of($values);
+        $parameter_types = $this->get_mysql_types_of($parameters);
         $primary_key_identifier_type = $this->get_mysql_type_of($primary_key_value);
 
-        $parameter_types = array_merge($parameter_types, [$primary_key_identifier_type]);
-        $parameters = array_merge($values, [$primary_key_value]);
+        array_push($parameter_types, $primary_key_identifier_type);
+        array_push($parameters, $primary_key_value);
 
         $this->execute_query($query, $parameter_types, $parameters);
     }
@@ -226,29 +226,35 @@ class MySQLiDatabaseTable implements DatabaseTable
 
     /**
      * @param mixed $primary_key_value A primary key pointing to the record that will be removed.
-     * @throws DatabaseActionException Thrown when unable to execute query removing record identified by $primary_key_value.
-     * @throws InvalidPrimaryKeyException Thrown when the query removed nothing.
+     * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the table.
      */
     public function remove($primary_key_value): void
     {
         $query = "DELETE FROM `{$this->name}` WHERE `{$this->primary_key_name}` = ?;";
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
-        $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
+        $statement = $this->mysqli->prepare($query);
+        $statement->bind_param($primary_key_type, $primary_key_value);
+        $statement->execute();
+
+        if ($statement->affected_rows == 0)
+        {
+            throw new InvalidPrimaryKeyException();
+        }
     }
 
     /**
      * @param mixed $primary_key_value A primary key pointing to the record that will be selected.
      * @return array An associative array representing a record stored in the table.
      *               Each element of the array is pointing from the column name to value: "column-name" => "value".
-     * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the database.
+     * @throws InvalidPrimaryKeyException Thrown when $primary_key_value doesn't match any record in the table.
      */
     public function select($primary_key_value): array
     {
-        $query = $this->select_query($primary_key_value);
-        $query->execute();
+        $statement = $this->select_query($primary_key_value);
+        $statement->execute();
 
-        if ($result = $query->get_result())
+        if ($result = $statement->get_result())
         {
             if ($result = $result->fetch_assoc())
             {
@@ -268,10 +274,10 @@ class MySQLiDatabaseTable implements DatabaseTable
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $query = "SELECT * FROM `{$this->name}` WHERE `{$this->primary_key_name}` = ?";
-        $query = $this->mysqli->prepare($query);
-        $query->bind_param($primary_key_type, $primary_key_value);
+        $statement = $this->mysqli->prepare($query);
+        $statement->bind_param($primary_key_type, $primary_key_value);
 
-        return $query;
+        return $statement;
     }
 
     /**
@@ -281,11 +287,11 @@ class MySQLiDatabaseTable implements DatabaseTable
      */
     public function select_all(): array
     {
-        $query = "SELECT * FROM `{$this->name}`";
-        $result = $this->mysqli->query($query);
-        $entries = $result->fetch_all(MYSQLI_ASSOC);
+        $query = "SELECT * FROM `{$this->name}`;";
+        $statement = $this->mysqli->query($query);
+        $result = $statement->fetch_all(MYSQLI_ASSOC);
         
-       return $entries;
+        return $result;
     }
 
     /**
@@ -297,9 +303,9 @@ class MySQLiDatabaseTable implements DatabaseTable
     public function select_where(string $condition): array
     {
         $query = "SELECT * FROM `{$this->name}` WHERE $condition;";
-        $result = $this->mysqli->query($query);
-        $entries = $result->fetch_all(MYSQLI_ASSOC);
+        $statement = $this->mysqli->query($query);
+        $result = $statement->fetch_all(MYSQLI_ASSOC);
 
-        return $entries;
+        return $result;
     }
 }
