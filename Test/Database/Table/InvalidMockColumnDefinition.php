@@ -3,7 +3,7 @@ namespace Test\Database\Table;
 
 use Source\Database\Table\ColumnDefinition;
 
-class InvalidColumnMockDefinition implements ColumnDefinition
+class InvalidMockColumnDefinition implements ColumnDefinition
 {
     public function get_name(): string
     {

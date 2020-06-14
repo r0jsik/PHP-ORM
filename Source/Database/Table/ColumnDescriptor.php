@@ -18,4 +18,10 @@ interface ColumnDescriptor
      * @return string The description of the column.
      */
     public function describe(ColumnDefinition $column_definition): string;
+
+    /**
+     * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
+     * @return string The description of the columns.
+     */
+    public function describe_all(array $column_definitions): string;
 }

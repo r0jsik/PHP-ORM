@@ -3,11 +3,13 @@ namespace Test\Database\Table;
 
 use Source\Database\Table\ColumnDefinition;
 
-class ValidColumnMockDefinition implements ColumnDefinition
+class ValidMockColumnDefinition implements ColumnDefinition
 {
+    public static $primary_key_name = "mock-column-name";
+
     public function get_name(): string
     {
-        return "mock-column-name";
+        return ValidMockColumnDefinition::$primary_key_name;
     }
 
     public function get_type(): string

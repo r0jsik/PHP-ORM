@@ -52,4 +52,20 @@ class MySQLiColumnDescriptor implements ColumnDescriptor
 
         return $description;
     }
+
+    /**
+     * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
+     * @return string A description of the columns received from parsing column definitions.
+     */
+    public function describe_all(array $column_definitions): string
+    {
+        $column_descriptions = array();
+
+        foreach ($column_definitions as $column_definition)
+        {
+            $column_descriptions[] = $this->describe($column_definition);
+        }
+
+        return implode(", ", $column_descriptions);
+    }
 }

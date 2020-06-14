@@ -3,7 +3,6 @@ namespace Source\MySQLi;
 
 use Exception;
 use mysqli;
-use mysqli_stmt;
 use Source\Database\Database;
 use Source\Database\DatabaseActionException;
 use Source\Database\DatabaseConnectionException;
@@ -75,58 +74,19 @@ class MySQLiDatabase implements Database
      */
     public function table_exists(string $name): bool
     {
-        $exists = null;
-
-        $query = $this->table_exists_query($name);
-        $query->execute();
-
-        $query->bind_result($exists);
-        $query->fetch();
-
-        $query->close();
-
-        return $exists;
-    }
-
-    /**
-     * @param string $table_name A name of the table.
-     * @return mysqli_stmt An object representing prepared query checking if the table with the specified name exists in the database.
-     */
-    private function table_exists_query(string $table_name): mysqli_stmt
-    {
-        $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?;";
-        $query = $this->mysqli->prepare($query);
-        $query->bind_param("ss", $this->database_name, $table_name);
-
-        return $query;
+        return $this->mysqli->query("SELECT * FROM `$name` LIMIT 0") == true;
     }
 
     /**
      * @param string $name A name of the table.
      * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
-     * @throws DatabaseActionException Thrown when unable to execute query creating table.
+     * @throws DatabaseActionException Thrown when unable to execute the query.
      */
     public function create_table(string $name, array $column_definitions): void
     {
-        $columns_description = $this->describe_columns($column_definitions);
+        $columns_description = $this->column_descriptor->describe_all($column_definitions);
         $query = "CREATE TABLE `$name` ($columns_description);";
         $this->execute_query($query);
-    }
-
-    /**
-     * @param array $column_definitions An array of the ColumnDefinition objects defining structure of the table.
-     * @return string A description of the columns received from parsing column definitions.
-     */
-    private function describe_columns(array $column_definitions): string
-    {
-        $column_descriptions = array();
-
-        foreach ($column_definitions as $column_definition)
-        {
-            $column_descriptions[] = $this->column_descriptor->describe($column_definition);
-        }
-
-        return implode(", ", $column_descriptions);
     }
 
     /**
@@ -137,7 +97,7 @@ class MySQLiDatabase implements Database
     {
         if ( !$this->mysqli->query($query))
         {
-            throw new DatabaseActionException();
+            throw new DatabaseActionException("Unable to invoke the query");
         }
     }
 
@@ -159,7 +119,7 @@ class MySQLiDatabase implements Database
 
     /**
      * @param string $name A name of the table that will be removed.
-     * @throws DatabaseActionException Thrown when unable to remove table with the specified name.
+     * @throws DatabaseActionException Thrown when unable to execute the query.
      */
     public function remove_table(string $name): void
     {
@@ -174,12 +134,11 @@ class MySQLiDatabase implements Database
      */
     public function within_transaction(callable $action): void
     {
-        $this->execute_query("START TRANSACTION");
+        $this->execute_query("BEGIN");
 
         try
         {
             $action();
-            $this->execute_query("COMMIT");
         }
         catch (Exception $exception)
         {
@@ -187,6 +146,8 @@ class MySQLiDatabase implements Database
 
             throw $exception;
         }
+
+        $this->execute_query("COMMIT");
     }
 
     /**
