@@ -192,7 +192,7 @@ class MySQLiDatabaseTable implements DatabaseTable
     public function update($primary_key_value, array $entry): void
     {
         $mapping_placeholder = $this->get_mapping_placeholder($entry);
-        $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE {$this->primary_key_name} = ?;";
+        $query = "UPDATE `{$this->name}` SET $mapping_placeholder WHERE `{$this->primary_key_name}` = ?;";
         $values = array_values($entry);
 
         $parameter_types = $this->get_mysql_types_of($values);
@@ -231,7 +231,7 @@ class MySQLiDatabaseTable implements DatabaseTable
      */
     public function remove($primary_key_value): void
     {
-        $query = "DELETE FROM `{$this->name}` WHERE {$this->primary_key_name} = ?;";
+        $query = "DELETE FROM `{$this->name}` WHERE `{$this->primary_key_name}` = ?;";
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
         $this->execute_query($query, [$primary_key_type], [$primary_key_value]);
@@ -267,7 +267,7 @@ class MySQLiDatabaseTable implements DatabaseTable
     {
         $primary_key_type = $this->get_mysql_type_of($primary_key_value);
 
-        $query = "SELECT * FROM `{$this->name}` WHERE {$this->primary_key_name} = ?";
+        $query = "SELECT * FROM `{$this->name}` WHERE `{$this->primary_key_name}` = ?";
         $query = $this->mysqli->prepare($query);
         $query->bind_param($primary_key_type, $primary_key_value);
 
@@ -281,7 +281,7 @@ class MySQLiDatabaseTable implements DatabaseTable
      */
     public function select_all(): array
     {
-        $query = "SELECT * FROM {$this->name}";
+        $query = "SELECT * FROM `{$this->name}`";
         $result = $this->mysqli->query($query);
         $entries = $result->fetch_all(MYSQLI_ASSOC);
         
@@ -296,7 +296,7 @@ class MySQLiDatabaseTable implements DatabaseTable
      */
     public function select_where(string $condition): array
     {
-        $query = "SELECT * FROM {$this->name} WHERE $condition;";
+        $query = "SELECT * FROM `{$this->name}` WHERE $condition;";
         $result = $this->mysqli->query($query);
         $entries = $result->fetch_all(MYSQLI_ASSOC);
 

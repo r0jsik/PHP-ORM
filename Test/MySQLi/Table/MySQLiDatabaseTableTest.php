@@ -9,116 +9,225 @@ use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
 use Source\Database\Table\InvalidPrimaryKeyException;
 use Source\MySQLi\MySQLiDatabase;
+use Test\Database\Table\MockColumnDefinition;
 
 class MySQLiDatabaseTableTest extends TestCase
 {
     private $database;
+    private $table_name = "test-table";
     private $table;
-    private $existing_primary_key_value = 50;
-    private $not_existing_primary_key_value = -100;
-    private $mock_primary_key_value = 10;
+    private $record_id = 3456;
 
     public function setUp(): void
     {
         $this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-        $this->table = $this->database->choose_table("existing-table", "id");
+        $this->create_test_table();
+
+        $this->table = $this->database->choose_table($this->table_name, "id");
+    }
+
+    private function create_test_table()
+    {
+        $column_definitions = [
+            new MockColumnDefinition("id", "integer", true, true, false),
+            new MockColumnDefinition("col_1", "varchar(64)", false, false, true),
+            new MockColumnDefinition("col_2", "varchar(64)", false, true, false)
+        ];
+
+        $this->database->create_table($this->table_name, $column_definitions);
     }
 
     public function tearDown(): void
     {
+        $this->database->remove_table($this->table_name);
         $this->database->close();
     }
 
-    public function test_select_existing_entry()
+    public function test_insert()
     {
-        $this->assert_entry_exists($this->existing_primary_key_value);
+        $this->insert_record();
+        $this->assert_record_exists();
     }
 
-    private function assert_entry_exists(int $primary_key_value)
+    private function insert_record()
     {
-        $this->assertNotNull($this->table->select($primary_key_value));
+        $record = [
+            "id" => $this->record_id,
+            "col_1" => "value",
+            "col_2" => "value"
+        ];
+
+        $this->table->insert($record);
     }
 
-    public function test_select_not_existing_entry()
+    private function assert_record_exists()
     {
-        $this->assert_entry_not_exists($this->not_existing_primary_key_value);
+        $this->assertNotNull($this->table->select($this->record_id));
     }
 
-    private function assert_entry_not_exists(int $primary_key_value)
+    public function test_update()
+    {
+        $this->insert_record();
+
+        $record = [
+            "id" => $this->record_id,
+            "col_1" => "updated",
+            "col_2" => "updated"
+        ];
+
+        $this->table->update($this->record_id, $record);
+        $selected_record = $this->table->select($this->record_id);
+        $this->assertEquals($record, $selected_record);
+    }
+
+    public function test_remove()
+    {
+        $this->insert_record();
+        $this->remove_record();
+        $this->assert_record_not_exists();
+    }
+
+    private function remove_record()
+    {
+        $this->table->remove($this->record_id);
+    }
+
+    private function assert_record_not_exists()
     {
         $this->expectException(InvalidPrimaryKeyException::class);
-        $this->table->select($primary_key_value);
+        $this->table->select($this->record_id);
     }
 
-    public function test_insert_mock_entry()
+    public function test_select()
     {
-        $entry = ["id" => $this->mock_primary_key_value];
+        $record = ["id" => $this->record_id, "col_1" => "value", "col_2" => "value"];
 
-        $this->table->insert($entry);
-        $this->assert_entry_exists($this->mock_primary_key_value);
-        $this->table->remove($this->mock_primary_key_value);
+        $this->table->insert($record);
+        $selected_record = $this->table->select($this->record_id);
+        $this->assertEquals($record, $selected_record);
     }
 
-    public function test_insert_existing_entry()
+    public function test_select_all()
     {
-        $entry = ["id" => $this->existing_primary_key_value];
+        $record_1 = ["id" => $this->record_id + 1, "col_1" => "value A", "col_2" => "value B"];
+        $record_2 = ["id" => $this->record_id + 2, "col_1" => "value C", "col_2" => "value D"];
+        $record_3 = ["id" => $this->record_id + 3, "col_1" => "value E", "col_2" => "value F"];
+        $records = [$record_1, $record_2, $record_3];
+
+        $this->table->insert($record_1);
+        $this->table->insert($record_2);
+        $this->table->insert($record_3);
+
+        $selected_records = $this->table->select_all();
+        $this->assertEquals($records, $selected_records);
+    }
+
+    public function test_insert_unique_value_twice()
+    {
+        $this->expectException(DatabaseActionException::class);
+        $this->insert_record();
+        $this->insert_record();
+    }
+
+    public function test_update_to_duplicated_unique_value()
+    {
+        $record_1 = ["id" => $this->record_id + 1, "col_1" => "value A", "col_2" => "unique"];
+        $record_2 = ["id" => $this->record_id + 2, "col_1" => "value B", "col_2" => ""];
+
+        $this->table->insert($record_1);
+        $this->table->insert($record_2);
+
+        $record_2["col_2"] = "unique";
 
         $this->expectException(DatabaseActionException::class);
-        $this->table->insert($entry);
+        $this->table->update($this->record_id + 2, $record_2);
     }
 
-    public function test_insert_invalid_entry()
-    {
-        $entry = ["id" => $this->not_existing_primary_key_value, "invalid-column" => 123];
-
-        $this->expectException(DatabaseActionException::class);
-        $this->table->insert($entry);
-    }
-
-    public function test_update_mock_entry()
-    {
-        $entry = ["id" => $this->mock_primary_key_value];
-        $updated_entry = ["mock" => "updated"];
-
-        $this->table->insert($entry);
-        $this->table->update($this->mock_primary_key_value, $updated_entry);
-
-        $result = $this->table->select($this->mock_primary_key_value);
-        $result = $result["mock"];
-        $this->assertEquals($result, "updated");
-
-        $this->table->remove($this->mock_primary_key_value);
-    }
-
-    public function test_update_not_existing_entry()
-    {
-        $entry = ["id" => 3612];
-
-        $this->expectException(InvalidPrimaryKeyException::class);
-        $this->table->update($this->not_existing_primary_key_value, $entry);
-    }
-
-    public function test_invalid_update_existing_entry()
-    {
-        $entry = ["id" => $this->not_existing_primary_key_value, "invalid-column" => 8293];
-
-        $this->expectException(DatabaseActionException::class);
-        $this->table->update($this->existing_primary_key_value, $entry);
-    }
-
-    public function test_remove_mock_entry()
-    {
-        $entry = ["id" => $this->mock_primary_key_value];
-
-        $this->table->insert($entry);
-        $this->table->remove($this->mock_primary_key_value);
-
-        $this->assert_entry_not_exists($this->mock_primary_key_value);
-    }
-
-    public function test_remove_not_existing_entry()
+    public function test_remove_not_existing_record()
     {
         $this->expectException(InvalidPrimaryKeyException::class);
-        $this->table->remove($this->not_existing_primary_key_value);
+        $this->remove_record();
+    }
+
+    public function test_select_not_existing_record()
+    {
+        $this->expectException(InvalidPrimaryKeyException::class);
+        $this->table->select($this->record_id);
+    }
+
+    public function test_insert_null_to_not_null_column()
+    {
+        $record = ["id" => $this->record_id, "col_1" => null, "col_2" => "value"];
+
+        $this->expectException(DatabaseActionException::class);
+        $this->table->insert($record);
+    }
+
+    public function test_update_to_null_on_not_null_column()
+    {
+        $record = ["id" => $this->record_id, "col_1" => "value A", "col_2" => "value B"];
+
+        $this->table->insert($record);
+
+        $record["col_1"] = null;
+
+        $this->table->update($this->record_id, $record);
+        $selected_record = $this->table->select($this->record_id);
+        $this->assertEmpty($selected_record["col_1"]);
+    }
+
+    public function test_record_id_returned_from_insert()
+    {
+        $record_id = 621826;
+        $record = ["id" => $record_id, "col_1" => "value", "col_2" => "value"];
+
+        $returned_record_id = $this->table->insert($record);
+        $this->assertEquals($record_id, $returned_record_id);
+    }
+
+    public function test_autoincrement_id_returned_from_insert()
+    {
+        $record_1 = ["id" => null, "col_1" => "value A", "col_2" => "value B"];
+        $record_2 = ["id" => null, "col_1" => "value C", "col_2" => "value D"];
+
+        $record_1_id = $this->table->insert($record_1);
+        $record_2_id = $this->table->insert($record_2);
+
+        $this->assertGreaterThan($record_1_id, $record_2_id);
+    }
+
+    public function test_insert_invalid_record()
+    {
+        $record = ["name" => "unknown", "number" => 21];
+
+        $this->expectException(DatabaseActionException::class);
+        $this->table->insert($record);
+    }
+
+    public function test_commit_transaction()
+    {
+        $this->database->within_transaction(function () {
+            $this->insert_record();
+        });
+
+        $this->assert_record_exists();
+    }
+
+    public function test_rollback_transaction()
+    {
+        $record = ["id" => $this->record_id, "col_1" => "value A", "col_2" => "value B"];
+
+        try
+        {
+            $this->database->within_transaction(function () use ($record) {
+                $this->table->insert($record);
+                $this->table->update("invalid-primary-key-value", $record);
+            });
+        }
+        catch (InvalidPrimaryKeyException $exception)
+        {
+            // Record's insertion should has been rolled-back due to exception thrown during transaction
+            $this->assert_record_not_exists();
+        }
     }
 }

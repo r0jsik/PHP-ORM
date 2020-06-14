@@ -7,6 +7,7 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
+use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\TableNotFoundException;
 use Source\MySQLi\MySQLiDatabase;
 use Test\Database\Table\InvalidMockColumnDefinition;
@@ -20,20 +21,15 @@ class MySQLiDatabaseTest extends TestCase
     public function setUp(): void
     {
         $this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-        $this->clear_database();
     }
 
-    private function clear_database()
+    public function tearDown(): void
     {
         if ($this->database->table_exists($this->table_name))
         {
             $this->database->remove_table($this->table_name);
         }
-    }
 
-    public function tearDown(): void
-    {
-        $this->clear_database();
         $this->database->close();
     }
 
@@ -103,13 +99,18 @@ class MySQLiDatabaseTest extends TestCase
     public function test_choose_existing_table()
     {
         $this->create_table();
-        $table = $this->database->choose_table($this->table_name, ValidMockColumnDefinition::$primary_key_name);
+        $table = $this->choose_table();
         $this->assertNotNull($table);
+    }
+
+    private function choose_table(): DatabaseTable
+    {
+        return $this->database->choose_table($this->table_name, ValidMockColumnDefinition::$primary_key_name);
     }
 
     public function test_choose_not_existing_table()
     {
         $this->expectException(TableNotFoundException::class);
-        $this->database->choose_table($this->table_name, ValidMockColumnDefinition::$primary_key_name);
+        $this->choose_table();
     }
 }
