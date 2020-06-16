@@ -44,11 +44,21 @@ class PropertyProxy
      */
     public function set_value($value): void
     {
-        $is_accessible = $this->property->isPublic();
+        static::set_value_of($this->property, $this->object, $value);
+    }
 
-        $this->property->setAccessible(true);
-        $this->property->setValue($this->object, $value);
-        $this->property->setAccessible($is_accessible);
+    /**
+     * @param ReflectionProperty $property The property that will be examined.
+     * @param object $object An object that will be examined.
+     * @param mixed $value The value that will be set.
+     */
+    public static function set_value_of(ReflectionProperty $property, $object, $value)
+    {
+        $is_accessible = $property->isPublic();
+
+        $property->setAccessible(true);
+        $property->setValue($object, $value);
+        $property->setAccessible($is_accessible);
     }
 
     /**
@@ -56,20 +66,22 @@ class PropertyProxy
      */
     public function get_value()
     {
-        $is_accessible = $this->property->isPublic();
-
-        $this->property->setAccessible(true);
-        $value = $this->property->getValue($this->object);
-        $this->property->setAccessible($is_accessible);
-
-        return $value;
+        return static::get_value_of($this->property, $this->object);
     }
 
     /**
-     * @return string A documentation comment assigned to the property.
+     * @param ReflectionProperty $property The property that will be examined.
+     * @param object $object An object that will be examined.
+     * @return mixed The value of the property.
      */
-    public function get_documentation(): string
+    public static function get_value_of(ReflectionProperty $property, $object)
     {
-        return $this->property->getDocComment();
+        $is_accessible = $property->isPublic();
+
+        $property->setAccessible(true);
+        $value = $property->getValue($object);
+        $property->setAccessible($is_accessible);
+
+        return $value;
     }
 }

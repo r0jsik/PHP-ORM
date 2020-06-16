@@ -8,6 +8,7 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Annotation\AnnotationPersistenceResolver;
+use Source\Core\CachedPersistenceResolver;
 use Source\Core\InvalidPrimaryKeyException;
 use Source\Core\ObjectFactory;
 use Source\Core\PersistenceService;

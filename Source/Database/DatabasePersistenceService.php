@@ -52,7 +52,7 @@ class DatabasePersistenceService implements PersistenceService
         $this->create_table_if_not_exists($table_name, $object);
 
         $table = $this->choose_table($table_name, $object);
-        $entry = $this->persistence_resolver->resolve_column_to_values_map($object);
+        $entry = $this->persistence_resolver->resolve_as_entry($object);
         $record_id = $table->insert($entry);
 
         $primary_key = $this->persistence_resolver->resolve_primary_key($object);
@@ -94,7 +94,7 @@ class DatabasePersistenceService implements PersistenceService
         $table_name = $this->persistence_resolver->resolve_table_name($object);
         $primary_key = $this->persistence_resolver->resolve_primary_key($object);
         $primary_key_value = $primary_key->get_value();
-        $entry = $this->persistence_resolver->resolve_column_to_values_map($object);
+        $entry = $this->persistence_resolver->resolve_as_entry($object);
 
         $table = $this->choose_table($table_name, $object);
         $table->update($primary_key_value, $entry);
@@ -125,7 +125,7 @@ class DatabasePersistenceService implements PersistenceService
         $object = $this->object_factory->instantiate($class);
         $table = $this->choose_table_for($object);
         $entry = $table->select($primary_key_value);
-        $properties = $this->persistence_resolver->resolve_column_to_properties_map($object);
+        $properties = $this->persistence_resolver->resolve_properties($object);
 
         $this->object_factory->apply_properties($entry, $properties);
 
@@ -188,7 +188,7 @@ class DatabasePersistenceService implements PersistenceService
     private function convert_to_object(string $class, array $entry)
     {
         $object = $this->object_factory->instantiate($class);
-        $properties = $this->persistence_resolver->resolve_column_to_properties_map($object);
+        $properties = $this->persistence_resolver->resolve_properties($object);
 
         $this->object_factory->apply_properties($entry, $properties);
 
@@ -223,7 +223,7 @@ class DatabasePersistenceService implements PersistenceService
     public function select_on_condition(string $class, callable $filter): array
     {
         $object = $this->object_factory->instantiate($class);
-        $column_names = $this->persistence_resolver->resolve_property_to_column_names_map($object);
+        $column_names = $this->persistence_resolver->resolve_column_names($object);
         $condition = $filter($column_names);
         $table = $this->choose_table_for($object);
         $entries = $table->select_where($condition);
