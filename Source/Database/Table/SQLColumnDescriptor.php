@@ -9,6 +9,13 @@ namespace Source\Database\Table;
  */
 class SQLColumnDescriptor implements ColumnDescriptor
 {
+    private $autoincrement_clause;
+
+    public function __construct()
+    {
+        $this->autoincrement_clause = "AUTO_INCREMENT";
+    }
+
     /**
      * @param ColumnDefinition $column_definition The definition of the column that will be described.
      * @return string The SQL description of the column.
@@ -44,7 +51,7 @@ class SQLColumnDescriptor implements ColumnDescriptor
 
         if ($column_definition->is_autoincrement())
         {
-            $description .= " AUTO_INCREMENT";
+            $description .= " " . $this->autoincrement_clause;
         }
 
         return $description;
@@ -64,5 +71,18 @@ class SQLColumnDescriptor implements ColumnDescriptor
         }
 
         return implode(", ", $column_descriptions);
+    }
+
+    /**
+     * @param string $driver The name of the database driver.
+     */
+    public function configure(string $driver)
+    {
+        switch ($driver)
+        {
+            case "sqlite":
+                $this->autoincrement_clause = "AUTOINCREMENT";
+                break;
+        }
     }
 }

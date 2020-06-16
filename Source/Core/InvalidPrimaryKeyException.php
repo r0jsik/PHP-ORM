@@ -1,5 +1,5 @@
 <?php
-namespace Source\Database\Table;
+namespace Source\Core;
 
 use Exception;
 

@@ -7,7 +7,7 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
-use Source\Database\Table\InvalidPrimaryKeyException;
+use Source\Core\InvalidPrimaryKeyException;
 use Source\MySQLi\MySQLiDatabase;
 use Test\Database\Table\MockColumnDefinition;
 

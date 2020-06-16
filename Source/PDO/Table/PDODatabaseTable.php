@@ -3,9 +3,9 @@ namespace Source\PDO\Table;
 
 use PDO;
 use PDOStatement;
+use Source\Core\InvalidPrimaryKeyException;
 use Source\Database\DatabaseActionException;
 use Source\Database\Table\DatabaseTable;
-use Source\Database\Table\InvalidPrimaryKeyException;
 
 class PDODatabaseTable implements DatabaseTable
 {

@@ -3,9 +3,9 @@ namespace Source\MySQLi\Table;
 
 use mysqli;
 use mysqli_stmt;
+use Source\Core\InvalidPrimaryKeyException;
 use Source\Database\DatabaseActionException;
 use Source\Database\Table\DatabaseTable;
-use Source\Database\Table\InvalidPrimaryKeyException;
 
 /**
  * Class MySQLiDatabaseTable

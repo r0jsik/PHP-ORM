@@ -15,10 +15,11 @@ class PDODatabase implements Database
     private $pdo;
     private $column_descriptor;
 
-    public function __construct(string $host, string $username, string $password, string $database_name, string $driver, string $charset = "utf8")
+    public function __construct(string $driver, string $data_source, string $username, string $password)
     {
-        $this->pdo = new PDO("$driver:host=$host;dbname=$database_name;charset=$charset", $username, $password);
+        $this->pdo = new PDO("$driver:$data_source", $username, $password);
         $this->column_descriptor = new SQLColumnDescriptor();
+        $this->column_descriptor->configure($driver);
     }
 
     /**
