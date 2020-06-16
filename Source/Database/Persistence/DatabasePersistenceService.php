@@ -1,9 +1,10 @@
 <?php
-namespace Source\Database;
+namespace Source\Database\Persistence;
 
 use Source\Core\ObjectFactory;
-use Source\Core\PersistenceResolver;
-use Source\Core\PersistenceService;
+use Source\Core\Persistence\PersistenceResolver;
+use Source\Core\Persistence\PersistenceService;
+use Source\Database\Database;
 use Source\Database\Table\DatabaseTable;
 use ArgumentCountError;
 

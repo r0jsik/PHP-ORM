@@ -7,13 +7,12 @@ spl_autoload_register(function ($path) {
 });
 
 use PHPUnit\Framework\TestCase;
-use Source\Annotation\AnnotationPersistenceResolver;
-use Source\Core\CachedPersistenceResolver;
+use Source\Annotation\Persistence\AnnotationPersistenceResolver;
 use Source\Core\InvalidPrimaryKeyException;
 use Source\Core\ObjectFactory;
-use Source\Core\PersistenceService;
+use Source\Core\Persistence\PersistenceService;
 use Source\Database\Database;
-use Source\Database\DatabasePersistenceService;
+use Source\Database\Persistence\DatabasePersistenceService;
 use Source\PDO\PDODatabase;
 use Source\User\Client;
 

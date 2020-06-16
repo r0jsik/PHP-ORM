@@ -7,7 +7,7 @@ spl_autoload_register(function ($path) {
 
 use PHPUnit\Framework\TestCase;
 use Source\Annotation\AnnotationNotFoundException;
-use Source\Annotation\AnnotationPersistenceResolver;
+use Source\Annotation\Persistence\AnnotationPersistenceResolver;
 
 class AnnotationPersistenceResolverTest extends TestCase
 {

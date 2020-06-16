@@ -1,11 +1,13 @@
 <?php
-namespace Source\Annotation;
+namespace Source\Annotation\Persistence;
 
 use Generator;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
-use Source\Core\PersistenceResolver;
+use Source\Annotation\AnnotationNotFoundException;
+use Source\Annotation\Column\AnnotationColumnDefinition;
+use Source\Core\Persistence\PersistenceResolver;
 use Source\Core\PropertyProxy;
 
 /**

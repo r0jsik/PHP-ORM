@@ -8,7 +8,7 @@ use Source\Database\DatabaseActionException;
 use Source\Database\DatabaseConnectionException;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\TableNotFoundException;
-use Source\Database\Table\SQLColumnDescriptor;
+use Source\Database\Column\SQLColumnDescriptor;
 use Source\MySQLi\Table\MySQLiDatabaseTable;
 
 /**

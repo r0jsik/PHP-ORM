@@ -1,5 +1,5 @@
 <?php
-namespace Source\Core;
+namespace Source\Core\Persistence;
 
 use Exception;
 

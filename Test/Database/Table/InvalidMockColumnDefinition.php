@@ -1,7 +1,7 @@
 <?php
 namespace Test\Database\Table;
 
-use Source\Database\Table\ColumnDefinition;
+use Source\Database\Column\ColumnDefinition;
 
 class InvalidMockColumnDefinition implements ColumnDefinition
 {

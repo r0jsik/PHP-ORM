@@ -5,11 +5,12 @@ spl_autoload_register(function ($path) {
     require_once("$path.php");
 });
 
-use Source\Annotation\AnnotationPersistenceResolver;
-use Source\Core\LoggingPersistenceService;
+use Source\Annotation\Persistence\AnnotationPersistenceResolver;
+use Source\Core\Persistence\CachedPersistenceResolver;
+use Source\Core\Persistence\LoggingPersistenceService;
 use Source\Core\ObjectFactory;
 use Source\Database\DatabaseConnectionException;
-use Source\Database\DatabasePersistenceService;
+use Source\Database\Persistence\DatabasePersistenceService;
 use Source\MySQLi\MySQLiDatabase;
 use Source\User\Client;
 
@@ -19,6 +20,7 @@ try
 
     $database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
     $persistence_resolver = new AnnotationPersistenceResolver();
+    $persistence_resolver = new CachedPersistenceResolver($persistence_resolver);
     $object_factory = new ObjectFactory();
     $persistence_service = new DatabasePersistenceService($database, $persistence_resolver, $object_factory);
     $persistence_service = new LoggingPersistenceService($persistence_service);

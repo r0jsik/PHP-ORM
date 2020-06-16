@@ -1,5 +1,4 @@
 <?php
-
 namespace Source\Database;
 
 use Exception;

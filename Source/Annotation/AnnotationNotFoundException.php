@@ -1,7 +1,7 @@
 <?php
 namespace Source\Annotation;
 
-use Source\Core\PersistenceResolvingException;
+use Source\Core\Persistence\PersistenceResolvingException;
 
 /**
  * Class AnnotationNotFoundException

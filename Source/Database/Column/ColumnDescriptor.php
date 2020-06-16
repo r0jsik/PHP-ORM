@@ -1,5 +1,5 @@
 <?php
-namespace Source\Database\Table;
+namespace Source\Database\Column;
 
 /**
  * Interface ColumnDescriptor

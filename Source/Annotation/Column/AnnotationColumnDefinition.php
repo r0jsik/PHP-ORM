@@ -1,7 +1,8 @@
 <?php
-namespace Source\Annotation;
+namespace Source\Annotation\Column;
 
-use Source\Database\Table\ColumnDefinition;
+use Source\Annotation\AnnotationNotFoundException;
+use Source\Database\Column\ColumnDefinition;
 
 /**
  * Class AnnotationColumnDefinition

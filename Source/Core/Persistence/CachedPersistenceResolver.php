@@ -1,5 +1,7 @@
 <?php
-namespace Source\Core;
+namespace Source\Core\Persistence;
+
+use Source\Core\PropertyProxy;
 
 /**
  * Class CachedPersistenceResolver
