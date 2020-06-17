@@ -183,19 +183,36 @@ class AnnotationPersistenceResolver implements PersistenceResolver
      *               Property of the class that is annotated with the @Column(column-name) annotation will be mapped as:
      *               "column-name" => PropertyProxy object.
      * @throws ReflectionException Thrown when unable to reflect object's class.
-     * @throws AnnotationNotFoundException Thrown when some property is not annotated with the @Column annotation.
      */
     public function resolve_properties($object): array
     {
+        return $this->resolve_associations($object, function($property) use ($object) {
+            yield $this->get_column_name_of($property) => new PropertyProxy($property, $object);
+        });
+    }
+
+    /**
+     * @param object $object An object that will be examined.
+     * @param callable $factory A closure returning generator of the associations that will be packed into array.
+     * @return array An associative array containing associations provided by the factory, for example:
+     *               the factory yields association defined as key => value; multiple times, for different properties.
+     *               Each entry of this array will associate all key to its values (as the factory yields).
+     * @throws ReflectionException Thrown when unable to reflect object's class.
+     */
+    private function resolve_associations($object, callable $factory): array
+    {
         $properties = $this->get_properties_of($object);
-        $map = array();
+        $resolved = [];
 
         foreach ($properties as $property)
         {
-            $map[$this->get_column_name_of($property)] = new PropertyProxy($property, $object);
+            foreach ($factory($property) as $key => $value)
+            {
+                $resolved[$key] = $value;
+            }
         }
 
-        return $map;
+        return $resolved;
     }
 
     /**
@@ -214,19 +231,12 @@ class AnnotationPersistenceResolver implements PersistenceResolver
      *               A field named as "field_name" is annotated with the @Column(column-name) annotation.
      *               It will be mapped as "field_name" => "column_name".
      * @throws ReflectionException Thrown when unable to reflect object's class.
-     * @throws AnnotationNotFoundException Thrown when some field of the object is not annotated with the @Column annotation.
      */
     public function resolve_column_names($object): array
     {
-        $properties = $this->get_properties_of($object);
-        $column_names = [];
-
-        foreach ($properties as $property)
-        {
-            $column_names[$property->getName()] = $this->get_column_name_of($property);
-        }
-
-        return $column_names;
+        return $this->resolve_associations($object, function($property) {
+            yield $property->getName() => $this->get_column_name_of($property);
+        });
     }
 
     /**
@@ -235,18 +245,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
      *               Field with "example value" value that is annotated with the @Column(column-name) annotation will be mapped as:
      *               "column-name" => "example value"
      * @throws ReflectionException Thrown when unable to reflect object's class.
-     * @throws AnnotationNotFoundException Thrown when some field of the object is not annotated with the @Column annotation.
      */
     public function resolve_as_entry($object): array
     {
-        $properties = $this->get_properties_of($object);
-        $entry = [];
-
-        foreach ($properties as $property)
-        {
-            $entry[$this->get_column_name_of($property)] = PropertyProxy::get_value_of($property, $object);
-        }
-
-        return $entry;
+        return $this->resolve_associations($object, function($property) use ($object) {
+            yield $this->get_column_name_of($property) => PropertyProxy::get_value_of($property, $object);
+        });
     }
 }

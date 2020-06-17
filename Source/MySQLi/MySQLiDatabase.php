@@ -128,7 +128,7 @@ class MySQLiDatabase implements Database
 
     /**
      * @param callable $action An action that will be invoked within transaction.
-     *                         If the action throws an exception, the transaction will be interrupted.
+     *                         If the action throws an exception, the transaction is interrupted and rolled-back.
      * @throws DatabaseActionException Thrown when unable to process the transaction.
      * @throws Exception Thrown from the action.
      */

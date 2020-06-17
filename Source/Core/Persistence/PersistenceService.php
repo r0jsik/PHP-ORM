@@ -56,7 +56,7 @@ interface PersistenceService
 
     /**
      * @param callable $action An action that will be invoked within transaction.
-     *                         If the action throws an exception, the transaction will be interrupted.
+     *                         If the action throws an exception, the transaction is interrupted and rolled-back.
      */
     public function within_transaction(callable $action): void;
 }

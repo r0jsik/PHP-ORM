@@ -1,7 +1,6 @@
 <?php
 namespace Source\Annotation\Column;
 
-use Source\Annotation\AnnotationNotFoundException;
 use Source\Database\Column\ColumnDefinition;
 
 /**
@@ -21,15 +20,9 @@ class AnnotationColumnDefinition implements ColumnDefinition
 
     /**
      * @param array $annotations An associative array containing annotations with its values.
-     * @throws AnnotationNotFoundException
      */
     public function __construct(array $annotations)
     {
-        if ( !key_exists("Type", $annotations))
-        {
-            throw new AnnotationNotFoundException();
-        }
-
         $this->annotations = $annotations;
     }
 
@@ -38,7 +31,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_name(): string
     {
-        return $this->annotations["Column"];
+        return filter_var($this->annotations["Column"], FILTER_SANITIZE_STRING);
     }
 
     /**
@@ -46,7 +39,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_type(): string
     {
-        return $this->annotations["Type"];
+        return filter_var($this->annotations["Type"], FILTER_SANITIZE_STRING);
     }
 
     /**
@@ -54,16 +47,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function has_length(): bool
     {
-        return $this->has_annotation("Length");
-    }
-
-    /**
-     * @param string $name A name of the annotation.
-     * @return bool A flag checking if the annotation with the specified name defines the column.
-     */
-    private function has_annotation(string $name): bool
-    {
-        return key_exists($name, $this->annotations);
+        return key_exists("Length", $this->annotations);
     }
 
     /**
@@ -71,7 +55,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_length(): int
     {
-        return $this->annotations["Length"];
+        return filter_var($this->annotations["Length"], FILTER_SANITIZE_NUMBER_INT);
     }
 
     /**
@@ -79,7 +63,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function is_not_null(): bool
     {
-        return $this->has_annotation("NotNull");
+        return key_exists("NotNull", $this->annotations);
     }
 
     /**
@@ -87,7 +71,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function is_unique(): bool
     {
-        return $this->has_annotation("Unique");
+        return key_exists("Unique", $this->annotations);
     }
 
     /**
@@ -95,7 +79,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function has_default_value(): bool
     {
-        return $this->has_annotation("Default");
+        return key_exists("Default", $this->annotations);
     }
 
     /**
@@ -103,7 +87,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_default_value()
     {
-        return $this->annotations["Default"];
+        return filter_var($this->annotations["Default"], FILTER_SANITIZE_SPECIAL_CHARS);
     }
 
     /**
@@ -111,7 +95,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function is_primary_key(): bool
     {
-        return $this->has_annotation("PrimaryKey");
+        return key_exists("PrimaryKey", $this->annotations);
     }
 
     /**
@@ -119,6 +103,6 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function is_autoincrement(): bool
     {
-        return $this->has_annotation("Autoincrement");
+        return key_exists("Autoincrement", $this->annotations);
     }
 }
