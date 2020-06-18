@@ -31,7 +31,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_name(): string
     {
-        return filter_var($this->annotations["Column"], FILTER_SANITIZE_STRING);
+        return preg_replace("/\W/", "", $this->annotations["Column"]);
     }
 
     /**
@@ -39,7 +39,7 @@ class AnnotationColumnDefinition implements ColumnDefinition
      */
     public function get_type(): string
     {
-        return filter_var($this->annotations["Type"], FILTER_SANITIZE_STRING);
+        return preg_replace("/\W/", "", $this->annotations["Type"]);
     }
 
     /**

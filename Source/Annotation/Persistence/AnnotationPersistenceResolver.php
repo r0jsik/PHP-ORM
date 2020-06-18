@@ -28,6 +28,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
     {
         $doc_string = $this->get_documentation_of($object);
         $table_name = $this->get_annotation_value($doc_string, "Table");
+        $table_name = preg_replace("/\W/", "", $table_name);
 
         return $table_name;
     }
@@ -222,7 +223,11 @@ class AnnotationPersistenceResolver implements PersistenceResolver
      */
     private function get_column_name_of(ReflectionProperty $property): string
     {
-        return $this->get_annotation_value($property->getDocComment(), "Column");
+        $doc_comment = $property->getDocComment();
+        $column_name = $this->get_annotation_value($doc_comment, "Column");
+        $column_name = preg_replace("/\W/", "", $column_name);
+
+        return $column_name;
     }
 
     /**
