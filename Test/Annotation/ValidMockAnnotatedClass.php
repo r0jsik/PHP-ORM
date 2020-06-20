@@ -2,7 +2,7 @@
 namespace Test\Annotation;
 
 /**
- * @Table(table-name)
+ * @Column(table-name)
  */
 class ValidMockAnnotatedClass
 {

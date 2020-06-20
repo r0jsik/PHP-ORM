@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 spl_autoload_register(function ($path) {
+    $path = str_replace("\\", "/", $path);
     require_once("$path.php");
 });
 
@@ -10,15 +11,17 @@ use Source\Core\Persistence\CachedPersistenceResolver;
 use Source\Core\Persistence\LoggingPersistenceService;
 use Source\Core\ObjectFactory;
 use Source\Database\DatabaseConnectionException;
+use Source\Database\Driver\MySQLiDriver;
 use Source\Database\Persistence\DatabasePersistenceService;
-use Source\MySQLi\MySQLiDatabase;
+use Source\Database\SimpleDatabase;
 use Source\User\Client;
 
 try
 {
     //error_reporting(E_ERROR | E_PARSE);
 
-    $database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+    $driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+    $database = new SimpleDatabase($driver);
     $persistence_resolver = new AnnotationPersistenceResolver();
     $persistence_resolver = new CachedPersistenceResolver($persistence_resolver);
     $object_factory = new ObjectFactory();

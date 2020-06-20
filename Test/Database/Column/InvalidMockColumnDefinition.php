@@ -1,5 +1,5 @@
 <?php
-namespace Test\Database\Table;
+namespace Test\Database\Column;
 
 use Source\Database\Column\ColumnDefinition;
 

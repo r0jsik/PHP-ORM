@@ -1,26 +1,31 @@
 <?php
-namespace Test\MySQLi;
+namespace Test\Database;
 
 spl_autoload_register(function ($path) {
+    $path = str_replace("\\", "/", $path);
     require_once("$path.php");
 });
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
+use Source\Database\Driver\MySQLiDriver;
+use Source\Database\Driver\PDODriver;
+use Source\Database\SimpleDatabase;
 use Source\Database\Table\DatabaseTable;
 use Source\Database\Table\TableNotFoundException;
-use Source\MySQLi\MySQLiDatabase;
-use Test\Database\Table\InvalidMockColumnDefinition;
-use Test\Database\Table\ValidMockColumnDefinition;
+use Test\Database\Column\InvalidMockColumnDefinition;
+use Test\Database\Column\ValidMockColumnDefinition;
 
-class MySQLiDatabaseTest extends TestCase
+class SimpleDatabaseTest extends TestCase
 {
     private $database;
     private $table_name = "mock-table";
 
     public function setUp(): void
     {
-        $this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        //$driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        $this->database = new SimpleDatabase($driver);
     }
 
     public function tearDown(): void

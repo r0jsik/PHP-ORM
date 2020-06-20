@@ -74,11 +74,11 @@ class SQLColumnDescriptor implements ColumnDescriptor
     }
 
     /**
-     * @param string $driver The name of the database driver.
+     * @param string $dialect The name of the queries dialect.
      */
-    public function configure(string $driver)
+    public function configure(string $dialect)
     {
-        switch ($driver)
+        switch ($dialect)
         {
             case "sqlite":
                 $this->autoincrement_clause = "AUTOINCREMENT";

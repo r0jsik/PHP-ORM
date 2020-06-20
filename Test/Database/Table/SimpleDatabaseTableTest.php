@@ -1,17 +1,20 @@
 <?php
-namespace Test\MySQLi\Table;
+namespace Test\Database\Table;
 
 spl_autoload_register(function ($path) {
+    $path = str_replace("\\", "/", $path);
     require_once("$path.php");
 });
 
 use PHPUnit\Framework\TestCase;
 use Source\Database\DatabaseActionException;
 use Source\Core\InvalidPrimaryKeyException;
-use Source\MySQLi\MySQLiDatabase;
-use Test\Database\Table\MockColumnDefinition;
+use Source\Database\Driver\MySQLiDriver;
+use Source\Database\Driver\PDODriver;
+use Source\Database\SimpleDatabase;
+use Test\Database\Column\MockColumnDefinition;
 
-class MySQLiDatabaseTableTest extends TestCase
+class SimpleDatabaseTableTest extends TestCase
 {
     private $database;
     private $table_name = "test-table";
@@ -20,7 +23,9 @@ class MySQLiDatabaseTableTest extends TestCase
 
     public function setUp(): void
     {
-        $this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        $this->database = new SimpleDatabase($driver);
         $this->create_test_table();
 
         $this->table = $this->database->choose_table($this->table_name, "id");
@@ -171,9 +176,19 @@ class MySQLiDatabaseTableTest extends TestCase
 
         $record["col_1"] = null;
 
-        $this->table->update($this->record_id, $record);
-        $selected_record = $this->table->select($this->record_id);
-        $this->assertNotNull($selected_record["col_1"]);
+        try
+        {
+            $this->table->update($this->record_id, $record);
+
+            $selected_record = $this->table->select($this->record_id);
+            $selected_value = $selected_record["col_1"];
+
+            $this->assertNotNull($selected_value);
+        }
+        catch (DatabaseActionException $exception)
+        {
+            $this->expectNotToPerformAssertions();
+        }
     }
 
     public function test_record_id_returned_from_insert()
