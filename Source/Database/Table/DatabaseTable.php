@@ -1,6 +1,8 @@
 <?php
 namespace Source\Database\Table;
 
+use Source\Database\Condition\ConditionBuilder;
+
 /**
  * Interface DatabaseTable
  * @package Source\Database\Table
@@ -45,10 +47,10 @@ interface DatabaseTable
     public function select_all(): array;
 
     /**
-     * @param string $condition A condition that will be appended after WHERE clause to the query.
+     * @param ConditionBuilder $condition An object building the query that will be appended to the WHERE clause.
      * @return array An array of associative arrays representing records stored in the table.
      *               Each element of the associative array is pointing from the column name to value:
      *               "column-name" => "value".
      */
-    public function select_where(string $condition): array;
+    public function select_where(ConditionBuilder $condition): array;
 }

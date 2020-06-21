@@ -4,6 +4,7 @@ namespace Source\Database\Persistence;
 use Source\Core\ObjectFactory;
 use Source\Core\Persistence\PersistenceResolver;
 use Source\Core\Persistence\PersistenceService;
+use Source\Database\Condition\SimpleConditionBuilder;
 use Source\Database\Database;
 use Source\Database\Table\DatabaseTable;
 use ArgumentCountError;
@@ -44,7 +45,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param object $object An object that is inserted into the database.
+     * @inheritDoc
      */
     public function insert($object): void
     {
@@ -88,7 +89,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param object $object An object that will be updated in the database.
+     * @inheritDoc
      */
     public function update($object): void
     {
@@ -102,7 +103,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param object $object An object that will be removed from the database.
+     * @inheritDoc
      */
     public function remove($object): void
     {
@@ -115,10 +116,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param string $class Path to the class of the retrieved object. Informs about type of the object.
-     * @param mixed $primary_key_value An value of the primary key, pointing to the record from which data will be used
-     *                                 to create retrieved object.
-     * @return object An object constructed using data from the database.
+     * @inheritDoc
      * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     public function select(string $class, $primary_key_value)
@@ -148,8 +146,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param string $class Path to the class of the retrieved objects. Informs about type of the objects.
-     * @return array An array containing constructed objects.
+     * @inheritDoc
      * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     public function select_all(string $class): array
@@ -197,10 +194,7 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param string $class Path to the class of the retrieved object.
-     * @param callable $filter A function accepting an associative array mapping column names to field values.
-     *                         Objects will be created only for the entries for which this function returns true.
-     * @return array An array containing constructed objects.
+     * @inheritDoc
      * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
     public function select_individually(string $class, callable $filter): array
@@ -215,27 +209,24 @@ class DatabasePersistenceService implements PersistenceService
     }
 
     /**
-     * @param string $class Path to the class of the retrieved object.
-     * @param callable $filter A function returning the condition which will be appended after the WHERE clause.
-     *                         Accepts an associative array mapping object's property names to column names.
-     * @return array An array containing constructed objects.
+     * @inheritDoc
      * @throws ArgumentCountError Thrown when unable to instantiate object due to arguments mismatch.
      */
-    public function select_on_condition(string $class, callable $filter): array
+    public function select_on_condition(string $class, callable $build_condition): array
     {
         $object = $this->object_factory->instantiate($class);
         $column_names = $this->persistence_resolver->resolve_column_names($object);
-        $condition = $filter($column_names);
+        $condition_builder = new SimpleConditionBuilder($column_names);
+        $build_condition($condition_builder);
         $table = $this->choose_table_for($object);
-        $entries = $table->select_where($condition);
+        $entries = $table->select_where($condition_builder);
         $objects = $this->convert_to_objects($class, $entries);
 
         return $objects;
     }
 
     /**
-     * @param callable $action An action that will be invoked within transaction.
-     *                         If the action throws an exception, the transaction is interrupted and rolled-back.
+     * @inheritDoc
      */
     public function within_transaction(callable $action): void
     {

@@ -1,6 +1,7 @@
 <?php
 namespace Source\Database\Table;
 
+use Source\Database\Condition\ConditionBuilder;
 use Source\Database\Driver\Driver;
 
 class SimpleDatabaseTable implements DatabaseTable
@@ -109,7 +110,7 @@ class SimpleDatabaseTable implements DatabaseTable
     /**
      * @inheritDoc
      */
-    public function select_where(string $condition): array
+    public function select_where(ConditionBuilder $condition): array
     {
         return $this->driver->select_multiple("SELECT * FROM `{$this->name}` WHERE $condition;");
     }

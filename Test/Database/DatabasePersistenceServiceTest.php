@@ -11,9 +11,11 @@ use Source\Annotation\Persistence\AnnotationPersistenceResolver;
 use Source\Core\InvalidPrimaryKeyException;
 use Source\Core\ObjectFactory;
 use Source\Core\Persistence\PersistenceService;
+use Source\Database\Condition\ConditionBuilder;
 use Source\Database\Database;
+use Source\Database\Driver\PDODriver;
 use Source\Database\Persistence\DatabasePersistenceService;
-use Source\PDO\PDODatabase;
+use Source\Database\SimpleDatabase;
 use Source\User\Client;
 
 class DatabasePersistenceServiceTest extends TestCase
@@ -30,7 +32,8 @@ class DatabasePersistenceServiceTest extends TestCase
 
     public function setUp(): void
     {
-        $this->database = new PDODatabase("sqlite", "Resources/test.db", "", "");
+        $driver = new PDODriver("sqlite:Resources/test.db", "", "");
+        $this->database = new SimpleDatabase($driver, "sqlite");
         $persistence_resolver = new AnnotationPersistenceResolver();
         $object_factory = new ObjectFactory();
         $this->persistence_service = new DatabasePersistenceService($this->database, $persistence_resolver, $object_factory);
@@ -159,8 +162,8 @@ class DatabasePersistenceServiceTest extends TestCase
 
         $this->insert_all($client_1, $client_2, $client_3);
 
-        $selected_clients = $this->persistence_service->select_on_condition(Client::class, function($parameters) {
-            return $parameters["surname"] . " LIKE '%F'";
+        $selected_clients = $this->persistence_service->select_on_condition(Client::class, function(ConditionBuilder $where) {
+            $where->property("surname")->like("%F");
         });
 
         $this->assertEquals($clients, $selected_clients);

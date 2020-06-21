@@ -168,7 +168,7 @@ class LoggingPersistenceService implements PersistenceService
     /**
      * @inheritDoc
      */
-    public function select_on_condition(string $class, callable $filter): array
+    public function select_on_condition(string $class, callable $build_condition): array
     {
         $objects = array();
 
@@ -176,7 +176,7 @@ class LoggingPersistenceService implements PersistenceService
         {
             $this->log("Selecting objects from the database using condition...");
 
-            $objects = $this->persistence_service->select_on_condition($class, $filter);
+            $objects = $this->persistence_service->select_on_condition($class, $build_condition);
 
             $this->log("Selected successfully");
         }

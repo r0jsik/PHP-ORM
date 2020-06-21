@@ -48,11 +48,11 @@ interface PersistenceService
 
     /**
      * @param string $class Path to the class of the retrieved object.
-     * @param callable $filter A function returning the condition which will be appended after the WHERE clause.
-     *                         Accepts an associative array mapping object's property names to data structure's property names.
+     * @param callable $build_condition A function returning the condition builder which will be used to create the condition.
+     *                         Accepts an object which can be used to build the query resistant to SQL Injection attacks.
      * @return array An array containing constructed objects.
      */
-    public function select_on_condition(string $class, callable $filter): array;
+    public function select_on_condition(string $class, callable $build_condition): array;
 
     /**
      * @param callable $action An action that will be invoked within transaction.
