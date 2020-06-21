@@ -25,15 +25,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->like("%F__"),
-            "`column_name` LIKE '%F__'"
-        );
-    }
-
-    public function test_encoded_like()
-    {
-        $this->assertEquals(
-            $this->where->property("name")->like("'&^*[]\"#"),
-            "`column_name` LIKE '\'&^*[]\\\"#'"
+            "`column_name` LIKE ?"
         );
     }
 
@@ -41,7 +33,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->in("simple", "quote's", "double \"quotes\"", "specials !@#$%^&*()\;"),
-            "`column_name` IN ('simple', 'quote\'s', 'double \\\"quotes\\\"', 'specials !@#$%^&*()\\\\;')"
+            "`column_name` IN (?, ?, ?, ?)"
         );
     }
 
@@ -49,7 +41,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->between(45, 90),
-            "`column_name` BETWEEN '45' TO '90'"
+            "`column_name` BETWEEN ? TO ?"
         );
     }
 
@@ -63,7 +55,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->lt(88),
-            "`column_name` < '88'"
+            "`column_name` < ?"
         );
     }
 
@@ -77,7 +69,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->le(88),
-            "`column_name` <= '88'"
+            "`column_name` <= ?"
         );
     }
 
@@ -91,7 +83,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->gt(88),
-            "`column_name` > '88'"
+            "`column_name` > ?"
         );
     }
 
@@ -105,7 +97,7 @@ class ConditionBuilderTest extends TestCase
     {
         $this->assertEquals(
             $this->where->property("name")->ge(88),
-            "`column_name` >= '88'"
+            "`column_name` >= ?"
         );
     }
 
@@ -115,35 +107,19 @@ class ConditionBuilderTest extends TestCase
         $this->where->property("name")->ge("it's not a number!");
     }
 
-    public function test_eq_number()
+    public function test_eq()
     {
         $this->assertEquals(
             $this->where->property("name")->eq(88),
-            "`column_name` = '88'"
+            "`column_name` = ?"
         );
     }
 
-    public function test_eq_string()
-    {
-        $this->assertEquals(
-            $this->where->property("name")->eq("McDonald's"),
-            "`column_name` = 'McDonald\\'s'"
-        );
-    }
-
-    public function test_ne_number()
+    public function test_ne()
     {
         $this->assertEquals(
             $this->where->property("name")->ne(88),
-            "`column_name` <> '88'"
-        );
-    }
-
-    public function test_ne_string()
-    {
-        $this->assertEquals(
-            $this->where->property("name")->ne("McDonald's"),
-            "`column_name` <> 'McDonald\\'s'"
+            "`column_name` <> ?"
         );
     }
 }

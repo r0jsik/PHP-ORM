@@ -13,6 +13,8 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     private $column_names;
 
+    private $parameters;
+
     /**
      * @param array $column_names An associative array mapping object's property names to corresponding column names.
      */
@@ -20,6 +22,7 @@ class SimpleConditionBuilder implements ConditionBuilder
     {
         $this->condition = "";
         $this->column_names = $column_names;
+        $this->parameters = [];
     }
 
     /**
@@ -35,11 +38,17 @@ class SimpleConditionBuilder implements ConditionBuilder
 
     /**
      * @param string $token A token that will be appended to the query.
+     * @param string... $parameters A list of parameters which will be used to prepare the query.
      * @return ConditionBuilder
      */
-    private function append(string $token): ConditionBuilder
+    private function append(string $token, ...$parameters): ConditionBuilder
     {
         $this->condition .= $token;
+
+        foreach ($parameters as $parameter)
+        {
+            $this->parameters[] = $parameter;
+        }
 
         return $this;
     }
@@ -73,10 +82,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function like(string $pattern): ConditionBuilder
     {
-        $pattern = filter_var($pattern, FILTER_SANITIZE_MAGIC_QUOTES);
-        $this->append(" LIKE '$pattern'");
-
-        return $this;
+        return $this->append(" LIKE ?", $pattern);
     }
 
     /**
@@ -84,13 +90,13 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function in(string ...$options): ConditionBuilder
     {
-        foreach ($options as $i => $option)
+        foreach ($options as $option)
         {
-            $options[$i] = filter_var($option, FILTER_SANITIZE_MAGIC_QUOTES);
+            $this->parameters[] = $option;
         }
 
-        $options = implode("', '", $options);
-        $this->append(" IN ('$options')");
+        $placeholder =  str_repeat("?, ", sizeof($options) - 1) . "?";
+        $this->append(" IN ($placeholder)", ...$options);
 
         return $this;
     }
@@ -100,7 +106,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function between(int $from, int $to): ConditionBuilder
     {
-        return $this->append(" BETWEEN '$from' TO '$to'");
+        return $this->append(" BETWEEN ? TO ?", $from, $to);
     }
 
     /**
@@ -108,7 +114,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function lt(int $value): ConditionBuilder
     {
-        return $this->append(" < '$value'");
+        return $this->append(" < ?", $value);
     }
 
     /**
@@ -116,7 +122,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function le(int $value): ConditionBuilder
     {
-        return $this->append(" <= '$value'");
+        return $this->append(" <= ?", $value);
     }
 
     /**
@@ -124,7 +130,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function gt(int $value): ConditionBuilder
     {
-        return $this->append(" > '$value'");
+        return $this->append(" > ?", $value);
     }
 
     /**
@@ -132,7 +138,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function ge(int $value): ConditionBuilder
     {
-        return $this->append(" >= '$value'");
+        return $this->append(" >= ?", $value);
     }
 
     /**
@@ -140,10 +146,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function eq(string $value): ConditionBuilder
     {
-        $value = filter_var($value, FILTER_SANITIZE_MAGIC_QUOTES);
-        $this->append(" = '$value'");
-
-        return $this;
+        return $this->append(" = ?", $value);
     }
 
     /**
@@ -151,10 +154,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function ne(string $value): ConditionBuilder
     {
-        $value = filter_var($value, FILTER_SANITIZE_MAGIC_QUOTES);
-        $this->append(" <> '$value'");
-
-        return $this;
+        return $this->append(" <> ?", $value);
     }
 
     /**
@@ -163,5 +163,10 @@ class SimpleConditionBuilder implements ConditionBuilder
     public function __toString(): string
     {
         return $this->condition;
+    }
+
+    public function get_parameters(): array
+    {
+        return $this->parameters;
     }
 }

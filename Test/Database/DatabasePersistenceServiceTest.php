@@ -13,6 +13,7 @@ use Source\Core\ObjectFactory;
 use Source\Core\Persistence\PersistenceService;
 use Source\Database\Condition\ConditionBuilder;
 use Source\Database\Database;
+use Source\Database\Driver\MySQLiDriver;
 use Source\Database\Driver\PDODriver;
 use Source\Database\Persistence\DatabasePersistenceService;
 use Source\Database\SimpleDatabase;
@@ -32,8 +33,9 @@ class DatabasePersistenceServiceTest extends TestCase
 
     public function setUp(): void
     {
-        $driver = new PDODriver("sqlite:Resources/test.db", "", "");
-        $this->database = new SimpleDatabase($driver, "sqlite");
+        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        //$driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $this->database = new SimpleDatabase($driver);
         $persistence_resolver = new AnnotationPersistenceResolver();
         $object_factory = new ObjectFactory();
         $this->persistence_service = new DatabasePersistenceService($this->database, $persistence_resolver, $object_factory);

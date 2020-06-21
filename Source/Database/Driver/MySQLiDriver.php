@@ -217,6 +217,26 @@ class MySQLiDriver implements Driver
     /**
      * @inheritDoc
      * @throws DatabaseActionException
+     */
+    public function select_multiple_with_parameters(string $query, array $parameters = []): array
+    {
+        if ($statement = $this->prepare_query($query, $parameters))
+        {
+            $statement->execute();
+
+            if ($result = $statement->get_result())
+            {
+                return $result->fetch_all(MYSQLI_ASSOC);
+            }
+        }
+
+        throw new DatabaseActionException();
+    }
+
+
+    /**
+     * @inheritDoc
+     * @throws DatabaseActionException
      * @throws Exception
      */
     public function within_transaction(callable $action): void

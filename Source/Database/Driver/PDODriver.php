@@ -110,12 +110,30 @@ class PDODriver implements Driver
 
     /**
      * @inheritDoc
+     * @throws DatabaseActionException
+     */
+    public function select_multiple_with_parameters(string $query, array $parameters = []): array
+    {
+        if ($statement = $this->pdo->prepare($query))
+        {
+            $statement->execute($parameters);
+            $records = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+            return $records;
+        }
+
+        throw new DatabaseActionException();
+    }
+
+    /**
+     * @inheritDoc
      * @throws InvalidPrimaryKeyException
      */
     public function select(string $query, $primary_key_value): array
     {
         $statement = $this->pdo->prepare($query);
-        $statement->execute([$primary_key_value]);
+        $statement->bindParam(1, $primary_key_value);
+        $statement->execute();
 
         if ($result = $statement->fetch(PDO::FETCH_ASSOC))
         {

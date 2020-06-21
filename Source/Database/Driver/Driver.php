@@ -45,6 +45,15 @@ interface Driver
     public function select_multiple(string $query): array;
 
     /**
+     * @param string $query A query that will be executed by the database driver.
+     * @param array $parameters An array of parameters that will be used to prepare the query.
+     * @return array An array of associative arrays representing records stored in the table.
+     *               Each element of the associative array is pointing from the column name to value:
+     *               "column-name" => "value".
+     */
+    public function select_multiple_with_parameters(string $query, array $parameters = []): array;
+
+    /**
      * @param callable $action An action that will be invoked within transaction.
      *                         If the action throws an exception, the transaction is interrupted and rolled-back.
      */

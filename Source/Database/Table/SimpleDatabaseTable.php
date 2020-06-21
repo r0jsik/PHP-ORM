@@ -112,6 +112,6 @@ class SimpleDatabaseTable implements DatabaseTable
      */
     public function select_where(ConditionBuilder $condition): array
     {
-        return $this->driver->select_multiple("SELECT * FROM `{$this->name}` WHERE $condition;");
+        return $this->driver->select_multiple_with_parameters("SELECT * FROM `{$this->name}` WHERE $condition;", $condition->get_parameters());
     }
 }

@@ -78,4 +78,9 @@ interface ConditionBuilder
      * @return ConditionBuilder
      */
     public function ne(string $value): ConditionBuilder;
+
+    /**
+     * @return array An array of parameters that will be used to prepare the query.
+     */
+    public function get_parameters(): array;
 }
