@@ -5,6 +5,15 @@
 
   "license": "GPL-3.0-or-later",
 
+  "homepage": "https://github.com/r0jsik/vadorco",
+
+  "authors": [
+    {
+      "name": "Marcin Rajs",
+      "role": "Developer"
+    }
+  ],
+
   "require": {
     "php": "^7.1.0",
     "ext-mysqli": "*",
