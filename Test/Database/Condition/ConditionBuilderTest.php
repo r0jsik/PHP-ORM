@@ -1,13 +1,8 @@
 <?php
 namespace Test\Database\Condition;
 
-spl_autoload_register(function ($path) {
-    $path = str_replace("\\", "/", $path);
-    require_once("$path.php");
-});
-
 use PHPUnit\Framework\TestCase;
-use Source\Database\Condition\SimpleConditionBuilder;
+use Vadorco\Database\Condition\SimpleConditionBuilder;
 use TypeError;
 
 class ConditionBuilderTest extends TestCase

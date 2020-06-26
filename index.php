@@ -1,20 +1,15 @@
 <?php
 declare(strict_types=1);
 
-spl_autoload_register(function ($path) {
-    $path = str_replace("\\", "/", $path);
-    require_once("$path.php");
-});
-
-use Source\Annotation\Persistence\AnnotationPersistenceResolver;
-use Source\Core\Persistence\CachedPersistenceResolver;
-use Source\Core\Persistence\LoggingPersistenceService;
-use Source\Core\ObjectFactory;
-use Source\Database\DatabaseConnectionException;
-use Source\Database\Driver\MySQLiDriver;
-use Source\Database\Persistence\DatabasePersistenceService;
-use Source\Database\SimpleDatabase;
-use Source\User\Client;
+use Vadorco\Annotation\Persistence\AnnotationPersistenceResolver;
+use Vadorco\Core\Persistence\CachedPersistenceResolver;
+use Vadorco\Core\Persistence\LoggingPersistenceService;
+use Vadorco\Core\ObjectFactory;
+use Vadorco\Database\DatabaseConnectionException;
+use Vadorco\Database\Driver\MySQLiDriver;
+use Vadorco\Database\Persistence\DatabasePersistenceService;
+use Vadorco\Database\SimpleDatabase;
+use Vadorco\User\Client;
 
 try
 {

@@ -1,17 +1,12 @@
 <?php
 namespace Test\Database\Table;
 
-spl_autoload_register(function ($path) {
-    $path = str_replace("\\", "/", $path);
-    require_once("$path.php");
-});
-
 use PHPUnit\Framework\TestCase;
-use Source\Database\DatabaseActionException;
-use Source\Core\InvalidPrimaryKeyException;
-use Source\Database\Driver\MySQLiDriver;
-use Source\Database\Driver\PDODriver;
-use Source\Database\SimpleDatabase;
+use Vadorco\Database\DatabaseActionException;
+use Vadorco\Core\InvalidPrimaryKeyException;
+use Vadorco\Database\Driver\MySQLiDriver;
+use Vadorco\Database\Driver\PDODriver;
+use Vadorco\Database\SimpleDatabase;
 use Test\Database\Column\MockColumnDefinition;
 
 class SimpleDatabaseTableTest extends TestCase

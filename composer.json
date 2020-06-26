@@ -1,9 +1,33 @@
 {
+  "name": "r0jsik/vadorco",
+
+  "description": "An ORM library for the PHP language.",
+
+  "license": "GPL-3.0-or-later",
+
   "require": {
+    "php": "^7.1.0",
     "ext-mysqli": "*",
     "ext-pdo": "*"
   },
+
   "require-dev": {
     "phpunit/phpunit": "9"
+  },
+
+  "autoload": {
+    "psr-4": {
+      "Vadorco\\": "Vadorco/"
+    }
+  },
+
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "Test/"
+    }
+  },
+
+  "config": {
+    "vendor-dir": "vadorco/vendor"
   }
 }

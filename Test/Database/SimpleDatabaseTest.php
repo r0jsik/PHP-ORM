@@ -1,18 +1,13 @@
 <?php
 namespace Test\Database;
 
-spl_autoload_register(function ($path) {
-    $path = str_replace("\\", "/", $path);
-    require_once("$path.php");
-});
-
 use PHPUnit\Framework\TestCase;
-use Source\Database\DatabaseActionException;
-use Source\Database\Driver\MySQLiDriver;
-use Source\Database\Driver\PDODriver;
-use Source\Database\SimpleDatabase;
-use Source\Database\Table\DatabaseTable;
-use Source\Database\Table\TableNotFoundException;
+use Vadorco\Database\DatabaseActionException;
+use Vadorco\Database\Driver\MySQLiDriver;
+use Vadorco\Database\Driver\PDODriver;
+use Vadorco\Database\SimpleDatabase;
+use Vadorco\Database\Table\DatabaseTable;
+use Vadorco\Database\Table\TableNotFoundException;
 use Test\Database\Column\InvalidMockColumnDefinition;
 use Test\Database\Column\ValidMockColumnDefinition;
 

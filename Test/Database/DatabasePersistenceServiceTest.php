@@ -1,23 +1,18 @@
 <?php
 namespace Test\Database;
 
-spl_autoload_register(function ($path) {
-    $path = str_replace("\\", "/", $path);
-    require_once("$path.php");
-});
-
 use PHPUnit\Framework\TestCase;
-use Source\Annotation\Persistence\AnnotationPersistenceResolver;
-use Source\Core\InvalidPrimaryKeyException;
-use Source\Core\ObjectFactory;
-use Source\Core\Persistence\PersistenceService;
-use Source\Database\Condition\ConditionBuilder;
-use Source\Database\Database;
-use Source\Database\Driver\MySQLiDriver;
-use Source\Database\Driver\PDODriver;
-use Source\Database\Persistence\DatabasePersistenceService;
-use Source\Database\SimpleDatabase;
-use Source\User\Client;
+use Vadorco\Annotation\Persistence\AnnotationPersistenceResolver;
+use Vadorco\Core\InvalidPrimaryKeyException;
+use Vadorco\Core\ObjectFactory;
+use Vadorco\Core\Persistence\PersistenceService;
+use Vadorco\Database\Condition\ConditionBuilder;
+use Vadorco\Database\Database;
+use Vadorco\Database\Driver\MySQLiDriver;
+use Vadorco\Database\Driver\PDODriver;
+use Vadorco\Database\Persistence\DatabasePersistenceService;
+use Vadorco\Database\SimpleDatabase;
+use Vadorco\User\Client;
 
 class DatabasePersistenceServiceTest extends TestCase
 {

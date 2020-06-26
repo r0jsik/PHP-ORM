@@ -1,13 +1,9 @@
 <?php
 namespace Test\Annotation;
 
-spl_autoload_register(function ($path) {
-    require_once("$path.php");
-});
-
 use PHPUnit\Framework\TestCase;
-use Source\Annotation\AnnotationNotFoundException;
-use Source\Annotation\Persistence\AnnotationPersistenceResolver;
+use Vadorco\Annotation\AnnotationNotFoundException;
+use Vadorco\Annotation\Persistence\AnnotationPersistenceResolver;
 
 class AnnotationPersistenceResolverTest extends TestCase
 {

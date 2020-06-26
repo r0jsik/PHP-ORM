@@ -1,7 +1,7 @@
 <?php
 namespace Test\Database\Column;
 
-use Source\Database\Column\ColumnDefinition;
+use Vadorco\Database\Column\ColumnDefinition;
 
 class ValidMockColumnDefinition implements ColumnDefinition
 {
