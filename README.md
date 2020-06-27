@@ -4,8 +4,7 @@ An ORM library for the PHP language.
 ## How to use the library?
 All the configuration process is really flexible. Let's import and instantiate a few, the most basic, objects:
 
-    $driver = new MySQLiDriver("localhost", "username", "password", "database");
-    $database = new SimpleDatabase($driver);
+    $database = new MySQLiDatabase("localhost", "username", "password", "database");
     $persistence_resolver = new AnnotationPersistenceResolver();
     $object_factory = new ObjectFactory();
     $persistence_service = new DatabasePersistenceService($database, $persistence_resolver, $object_factory);
@@ -53,7 +52,7 @@ This library supports, for example, the following database drivers:
 - Firebird
 - SQLite
 
-Most of them are available through the __PDODriver__ object, whereas the __MySQLiDriver__ is preferred for MySQL databases.
+Most of them are available through the __PDODatabase__ object, whereas the __MySQLiDatabase__ is preferred for MySQL databases.
 
 ## Security
 This library is resistant to SQL Injection attacks. It can work only using minimal set of privileges:

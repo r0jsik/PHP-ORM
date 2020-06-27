@@ -1,6 +1,12 @@
 <?php
 namespace Vadorco\Database\Condition;
 
+/**
+ * Class GenericConditionBuilder
+ * @package Vadorco\Database\Condition
+ *
+ * An object used for building the condition which will be appended to the query.
+ */
 class SimpleConditionBuilder implements ConditionBuilder
 {
     /**
@@ -13,6 +19,9 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     private $column_names;
 
+    /**
+     * @var array An array of parameters that will be used to prepare the query.
+     */
     private $parameters;
 
     /**
@@ -90,12 +99,7 @@ class SimpleConditionBuilder implements ConditionBuilder
      */
     public function in(string ...$options): ConditionBuilder
     {
-        foreach ($options as $option)
-        {
-            $this->parameters[] = $option;
-        }
-
-        $placeholder =  str_repeat("?, ", sizeof($options) - 1) . "?";
+        $placeholder = str_repeat("?, ", sizeof($options) - 1) . "?";
         $this->append(" IN ($placeholder)", ...$options);
 
         return $this;
@@ -165,6 +169,9 @@ class SimpleConditionBuilder implements ConditionBuilder
         return $this->condition;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function get_parameters(): array
     {
         return $this->parameters;

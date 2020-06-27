@@ -8,10 +8,9 @@ use Vadorco\Core\ObjectFactory;
 use Vadorco\Core\Persistence\PersistenceService;
 use Vadorco\Database\Condition\ConditionBuilder;
 use Vadorco\Database\Database;
-use Vadorco\Database\Driver\MySQLiDriver;
-use Vadorco\Database\Driver\PDODriver;
+use Vadorco\Database\MySQLiDatabase;
+use Vadorco\Database\PDODatabase;
 use Vadorco\Database\Persistence\DatabasePersistenceService;
-use Vadorco\Database\SimpleDatabase;
 use Vadorco\User\Client;
 
 class DatabasePersistenceServiceTest extends TestCase
@@ -28,9 +27,10 @@ class DatabasePersistenceServiceTest extends TestCase
 
     public function setUp(): void
     {
-        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
-        //$driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-        $this->database = new SimpleDatabase($driver);
+        //$this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $this->database = new PDODatabase("mysql", "mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        //$this->database = new PDODatabase("sqlite", "sqlite:Resources/test.db", "", "");
+
         $persistence_resolver = new AnnotationPersistenceResolver();
         $object_factory = new ObjectFactory();
         $this->persistence_service = new DatabasePersistenceService($this->database, $persistence_resolver, $object_factory);

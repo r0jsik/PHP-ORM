@@ -1,7 +1,9 @@
 <?php
 namespace Vadorco\Database;
 
-use Vadorco\Database\Column\SQLColumnDescriptor;
+use Vadorco\Database\Condition\ConditionBuilder;
+use Vadorco\Database\Condition\SimpleConditionBuilder;
+use Vadorco\Database\Dialect\Dialect;
 use Vadorco\Database\Driver\Driver;
 use Vadorco\Database\Table\DatabaseTable;
 use Vadorco\Database\Table\SimpleDatabaseTable;
@@ -9,14 +11,24 @@ use Vadorco\Database\Table\TableNotFoundException;
 
 class SimpleDatabase implements Database
 {
+    /**
+     * @var Driver An object representing a connection with the database.
+     */
     private $driver;
+
+    /**
+     * @var Column\ColumnDescriptor
+     */
     private $column_descriptor;
 
-    public function __construct(Driver $driver, $dialect = "")
+    /**
+     * @param Driver $driver An object representing a connection with the database.
+     * @param Dialect $dialect
+     */
+    public function __construct(Driver $driver, Dialect $dialect)
     {
         $this->driver = $driver;
-        $this->column_descriptor = new SQLColumnDescriptor();
-        $this->column_descriptor->configure($dialect);
+        $this->column_descriptor = $dialect->get_column_descriptor();
     }
 
     /**
@@ -69,6 +81,14 @@ class SimpleDatabase implements Database
     public function remove_table(string $name): void
     {
         $this->driver->execute("DROP TABLE `$name`;");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function create_condition_builder(array $column_names): ConditionBuilder
+    {
+        return new SimpleConditionBuilder($column_names);
     }
 
     /**

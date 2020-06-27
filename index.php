@@ -2,21 +2,19 @@
 declare(strict_types=1);
 
 use Vadorco\Annotation\Persistence\AnnotationPersistenceResolver;
+use Vadorco\Core\ObjectFactory;
 use Vadorco\Core\Persistence\CachedPersistenceResolver;
 use Vadorco\Core\Persistence\LoggingPersistenceService;
-use Vadorco\Core\ObjectFactory;
 use Vadorco\Database\DatabaseConnectionException;
-use Vadorco\Database\Driver\MySQLiDriver;
+use Vadorco\Database\MySQLiDatabase;
 use Vadorco\Database\Persistence\DatabasePersistenceService;
-use Vadorco\Database\SimpleDatabase;
 use Vadorco\User\Client;
 
 try
 {
     //error_reporting(E_ERROR | E_PARSE);
 
-    $driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-    $database = new SimpleDatabase($driver);
+    $database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
     $persistence_resolver = new AnnotationPersistenceResolver();
     $persistence_resolver = new CachedPersistenceResolver($persistence_resolver);
     $object_factory = new ObjectFactory();

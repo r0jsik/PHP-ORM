@@ -5,7 +5,6 @@ use Exception;
 use PDO;
 use Vadorco\Core\InvalidPrimaryKeyException;
 use Vadorco\Database\DatabaseActionException;
-use Vadorco\Database\DatabaseConnectionException;
 
 /**
  * Class PDODriver
@@ -49,14 +48,14 @@ class PDODriver implements Driver
      */
     public function execute_prepared(string $query, ...$parameters): void
     {
-        $prepared_query = $this->pdo->prepare($query);
-        $prepared_query->execute($parameters);
+        $statement = $this->pdo->prepare($query);
+        $statement->execute($parameters);
 
         try
         {
-            if ($prepared_query->rowCount() == 0)
+            if ($statement->rowCount() == 0)
             {
-                if ($prepared_query->errorCode() == 23000)
+                if ($statement->errorCode() == 23000)
                 {
                     throw new DatabaseActionException();
                 }
@@ -66,7 +65,7 @@ class PDODriver implements Driver
         }
         finally
         {
-            $prepared_query->closeCursor();
+            $statement->closeCursor();
         }
     }
 
@@ -76,22 +75,18 @@ class PDODriver implements Driver
      */
     public function insert(string $query, ...$values): int
     {
-        $prepared_query = $this->pdo->prepare($query);
-        $prepared_query->execute($values);
-
-        try
+        if ($statement = $this->pdo->prepare($query))
         {
-            if ($prepared_query->rowCount() > 0)
+            $successful = $statement->execute($values);
+            $statement->closeCursor();
+
+            if ($successful)
             {
                 return $this->pdo->lastInsertId();
             }
+        }
 
-            throw new DatabaseActionException();
-        }
-        finally
-        {
-            $prepared_query->closeCursor();
-        }
+        throw new DatabaseActionException();
     }
 
     /**

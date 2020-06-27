@@ -4,7 +4,6 @@ namespace Vadorco\Database\Persistence;
 use Vadorco\Core\ObjectFactory;
 use Vadorco\Core\Persistence\PersistenceResolver;
 use Vadorco\Core\Persistence\PersistenceService;
-use Vadorco\Database\Condition\SimpleConditionBuilder;
 use Vadorco\Database\Database;
 use Vadorco\Database\Table\DatabaseTable;
 use ArgumentCountError;
@@ -216,8 +215,10 @@ class DatabasePersistenceService implements PersistenceService
     {
         $object = $this->object_factory->instantiate($class);
         $column_names = $this->persistence_resolver->resolve_column_names($object);
-        $condition_builder = new SimpleConditionBuilder($column_names);
+        $condition_builder = $this->database->create_condition_builder($column_names);
+
         $build_condition($condition_builder);
+
         $table = $this->choose_table_for($object);
         $entries = $table->select_where($condition_builder);
         $objects = $this->convert_to_objects($class, $entries);

@@ -2,25 +2,24 @@
 namespace Test\Database;
 
 use PHPUnit\Framework\TestCase;
-use Vadorco\Database\DatabaseActionException;
-use Vadorco\Database\Driver\MySQLiDriver;
-use Vadorco\Database\Driver\PDODriver;
-use Vadorco\Database\SimpleDatabase;
-use Vadorco\Database\Table\DatabaseTable;
-use Vadorco\Database\Table\TableNotFoundException;
 use Test\Database\Column\InvalidMockColumnDefinition;
 use Test\Database\Column\ValidMockColumnDefinition;
+use Vadorco\Database\DatabaseActionException;
+use Vadorco\Database\MySQLiDatabase;
+use Vadorco\Database\PDODatabase;
+use Vadorco\Database\Table\DatabaseTable;
+use Vadorco\Database\Table\TableNotFoundException;
 
-class SimpleDatabaseTest extends TestCase
+class DatabaseTest extends TestCase
 {
     private $database;
     private $table_name = "mock-table";
 
     public function setUp(): void
     {
-        //$driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
-        $this->database = new SimpleDatabase($driver);
+        //$this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $this->database = new PDODatabase("mysql", "mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        //$this->database = new PDODatabase("sqlite", "sqlite:Resources/test.db", "", "");
     }
 
     public function tearDown(): void

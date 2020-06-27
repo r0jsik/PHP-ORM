@@ -1,6 +1,7 @@
 <?php
 namespace Vadorco\Database;
 
+use Vadorco\Database\Condition\ConditionBuilder;
 use Vadorco\Database\Table\DatabaseTable;
 
 /**
@@ -34,6 +35,12 @@ interface Database
      * @param string $name A name of the table that will be removed.
      */
     public function remove_table(string $name): void;
+
+    /**
+     * @param array $column_names An associative array mapping object's property names to corresponding column names.
+     * @return ConditionBuilder An object used for building the condition which will be appended to the query.
+     */
+    public function create_condition_builder(array $column_names): ConditionBuilder;
 
     /**
      * @param callable $action An action that will be invoked within transaction.

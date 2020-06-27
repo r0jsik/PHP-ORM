@@ -5,15 +5,15 @@ namespace Vadorco\Database\Column;
  * Class SQLColumnDescriptor
  * @package Vadorco\Database\Table
  *
- * An implementation of the mechanism describing column definition in SQL dialect.
+ * An implementation of the mechanism describing column definition in Generic SQL dialect.
  */
-class SQLColumnDescriptor implements ColumnDescriptor
+class SimpleColumnDescriptor implements ColumnDescriptor
 {
     private $autoincrement_clause;
 
-    public function __construct()
+    public function __construct(string $autoincrement_clause)
     {
-        $this->autoincrement_clause = "AUTO_INCREMENT";
+        $this->autoincrement_clause = $autoincrement_clause;
     }
 
     /**
@@ -71,18 +71,5 @@ class SQLColumnDescriptor implements ColumnDescriptor
         }
 
         return implode(", ", $column_descriptions);
-    }
-
-    /**
-     * @param string $dialect The name of the queries dialect.
-     */
-    public function configure(string $dialect)
-    {
-        switch ($dialect)
-        {
-            case "sqlite":
-                $this->autoincrement_clause = "AUTOINCREMENT";
-                break;
-        }
     }
 }

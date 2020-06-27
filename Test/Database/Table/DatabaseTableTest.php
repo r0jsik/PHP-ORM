@@ -2,14 +2,13 @@
 namespace Test\Database\Table;
 
 use PHPUnit\Framework\TestCase;
-use Vadorco\Database\DatabaseActionException;
-use Vadorco\Core\InvalidPrimaryKeyException;
-use Vadorco\Database\Driver\MySQLiDriver;
-use Vadorco\Database\Driver\PDODriver;
-use Vadorco\Database\SimpleDatabase;
 use Test\Database\Column\MockColumnDefinition;
+use Vadorco\Core\InvalidPrimaryKeyException;
+use Vadorco\Database\DatabaseActionException;
+use Vadorco\Database\MySQLiDatabase;
+use Vadorco\Database\PDODatabase;
 
-class SimpleDatabaseTableTest extends TestCase
+class DatabaseTableTest extends TestCase
 {
     private $database;
     private $table_name = "test-table";
@@ -18,9 +17,10 @@ class SimpleDatabaseTableTest extends TestCase
 
     public function setUp(): void
     {
-        $driver = new MySQLiDriver("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
-        $driver = new PDODriver("mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
-        $this->database = new SimpleDatabase($driver);
+        //$this->database = new MySQLiDatabase("localhost", "orm", "M0xe0MeHwWzl9RMy", "php-orm");
+        $this->database = new PDODatabase("mysql", "mysql:dbname=php-orm", "orm", "M0xe0MeHwWzl9RMy");
+        //$this->database = new PDODatabase("sqlite", "sqlite:Resources/test.db", "", "");
+
         $this->create_test_table();
 
         $this->table = $this->database->choose_table($this->table_name, "id");

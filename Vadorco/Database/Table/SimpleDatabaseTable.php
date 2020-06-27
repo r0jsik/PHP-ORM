@@ -2,6 +2,7 @@
 namespace Vadorco\Database\Table;
 
 use Vadorco\Database\Condition\ConditionBuilder;
+use Vadorco\Database\Dialect\Dialect;
 use Vadorco\Database\Driver\Driver;
 
 class SimpleDatabaseTable implements DatabaseTable
@@ -21,6 +22,11 @@ class SimpleDatabaseTable implements DatabaseTable
      */
     private $driver;
 
+    /**
+     * @param string $name A name of the table.
+     * @param string $primary_key_name A name of a column that is a primary key of the table.
+     * @param Driver $driver An object representing database driver.
+     */
     public function __construct(string $name, string $primary_key_name, Driver $driver)
     {
         $this->name = $name;
