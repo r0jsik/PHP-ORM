@@ -3,61 +3,127 @@ namespace Test\Annotation;
 
 use PHPUnit\Framework\TestCase;
 use Vadorco\Annotation\AnnotationNotFoundException;
+use Vadorco\Annotation\Column\AnnotationColumnDefinition;
 use Vadorco\Annotation\Persistence\AnnotationPersistenceResolver;
 
 class AnnotationPersistenceResolverTest extends TestCase
 {
-    private $annotation_resolver;
-    private $valid_mock_object;
-    private $invalid_mock_object;
+    private $persistence_resolver;
 
     public function setUp(): void
     {
-        $this->annotation_resolver = new AnnotationPersistenceResolver();
-        $this->valid_mock_object = new ValidMockAnnotatedClass();
-        $this->invalid_mock_object = new InvalidMockAnnotatedClass();
+        $this->persistence_resolver = new AnnotationPersistenceResolver();
     }
 
-    public function test_resolve_valid_table_name()
+    public function test_resolve_table_name()
     {
-        $table_name = $this->annotation_resolver->resolve_table_name($this->valid_mock_object);
-        $this->assertNotNull($table_name);
+        $object = new MockObjectWithValidTableAnnotation();
+        $table_name = $this->persistence_resolver->resolve_table_name($object);
+
+        $this->assertEquals("table_name", $table_name);
     }
 
-    public function test_resolve_invalid_table_name()
+    public function test_sanitize_table_name()
     {
+        $object = new MockObjectWithInvalidTableAnnotation();
+        $table_name = $this->persistence_resolver->resolve_table_name($object);
+
+        $this->assertEquals("table_name", $table_name);
+    }
+
+    public function test_table_annotation_not_found_exception()
+    {
+        $object = new MockObjectWithoutTableName();
+
         $this->expectException(AnnotationNotFoundException::class);
-        $this->annotation_resolver->resolve_table_name($this->invalid_mock_object);
+        $this->persistence_resolver->resolve_table_name($object);
     }
 
-    public function test_resolve_valid_column_definitions()
+    public function test_resolve_column_definitions()
     {
-        $definitions = $this->annotation_resolver->resolve_column_definitions($this->valid_mock_object);
-        $mock_column_definition = $definitions[0];
+        $expected_column_definitions = [
+            new AnnotationColumnDefinition([
+                "Column" => "column_name_A", "Annotation" => "value 1"
+            ]),
+            new AnnotationColumnDefinition([
+                "Column" => "column_name_B", "Annotation" => "value 2"
+            ])
+        ];
 
-        $this->assertEquals("column-name", $mock_column_definition->get_name());
-        $this->assertEquals("varchar", $mock_column_definition->get_type());
+        $object = new MockObjectToTestProperties();
+        $column_definitions = $this->persistence_resolver->resolve_column_definitions($object);
 
-        $this->assertTrue($mock_column_definition->is_not_null());
-        $this->assertFalse($mock_column_definition->has_default_value());
+        $this->assertEquals($expected_column_definitions,$column_definitions);
     }
 
-    public function test_resolve_valid_primary_key()
+    public function test_column_annotation_not_found_exception()
     {
-        $primary_key = $this->annotation_resolver->resolve_primary_key($this->valid_mock_object);
-        $this->assertNotNull($primary_key);
-    }
+        $object = new MockObjectWithInvalidPrimaryKey();
 
-    public function test_resolve_invalid_primary_key()
-    {
         $this->expectException(AnnotationNotFoundException::class);
-        $this->annotation_resolver->resolve_primary_key($this->invalid_mock_object);
+        $this->persistence_resolver->resolve_column_names($object);
     }
 
-    public function test_resolve_primary_key_value()
+    public function test_resolve_primary_key()
     {
-        $primary_key = $this->annotation_resolver->resolve_primary_key($this->valid_mock_object);
-        $primary_key_value = $primary_key->get_value();
-        $this->assertEquals("TEST", $primary_key_value);
+        $expected_value = rand(1, 9999999);
+
+        $object = new MockObjectWithValidPrimaryKey();
+        $primary_key = $this->persistence_resolver->resolve_primary_key($object);
+        $primary_key->set_value($expected_value);
+        $current_value = $primary_key->get_value();
+
+        $this->assertEquals($expected_value, $current_value);
+    }
+
+    public function test_primary_key_annotation_not_found_exception()
+    {
+        $object = new MockObjectWithInvalidPrimaryKey();
+
+        $this->expectException(AnnotationNotFoundException::class);
+        $this->persistence_resolver->resolve_primary_key($object);
+    }
+
+    public function test_resolve_properties()
+    {
+        $expected_value_A = rand(1, 9999999);
+        $expected_value_B = rand(1, 9999999);
+
+        $object = new MockObjectToTestProperties();
+        $properties = $this->persistence_resolver->resolve_properties($object);
+        $properties["column_name_A"]->set_value($expected_value_A);
+        $properties["column_name_B"]->set_value($expected_value_B);
+
+        $value_A = $object->get_value_A();
+        $value_B = $object->get_value_B();
+
+        $this->assertEquals($expected_value_A, $value_A);
+        $this->assertEquals($expected_value_B, $value_B);
+    }
+
+    public function test_resolve_column_names()
+    {
+        $object = new MockObjectToTestProperties();
+        $column_names = $this->persistence_resolver->resolve_column_names($object);
+        $column_name_of_property_A = $column_names["property_A"];
+        $column_name_of_property_B = $column_names["property_B"];
+
+        $this->assertEquals("column_name_A", $column_name_of_property_A);
+        $this->assertEquals("column_name_B", $column_name_of_property_B);
+    }
+
+    public function test_resolve_as_entry()
+    {
+        $expected_value_A = rand(1, 9999999);
+        $expected_value_B = rand(1, 9999999);
+        $expected_entry = ["column_name_A" => $expected_value_A, "column_name_B" => $expected_value_B];
+
+        $object = new MockObjectToTestProperties();
+        $object->set_value_A($expected_value_A);
+        $object->set_value_B($expected_value_B);
+
+        $entry = $this->persistence_resolver->resolve_as_entry($object);
+
+        $this->assertEquals($expected_entry, $entry);
     }
 }

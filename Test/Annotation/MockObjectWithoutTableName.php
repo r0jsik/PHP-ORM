@@ -2,9 +2,9 @@
 namespace Test\Annotation;
 
 /**
- * @Tabelele
+ * @Table
  */
-class InvalidMockAnnotatedClass
+class MockObjectWithoutTableName
 {
 
 }
