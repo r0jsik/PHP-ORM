@@ -62,12 +62,12 @@ class CachedPersistenceResolver implements PersistenceResolver
     {
         $object_type = gettype($object);
 
-        if (key_exists($object_type, $cache))
+        if ( !key_exists($object_type, $cache))
         {
-            return $cache[$object_type];
+            $cache[$object_type] = $load($object);
         }
 
-        return $cache[$object_type] = $load($object);
+        return $cache[$object_type];
     }
 
     /**

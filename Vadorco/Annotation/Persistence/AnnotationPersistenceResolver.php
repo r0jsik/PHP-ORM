@@ -239,7 +239,7 @@ class AnnotationPersistenceResolver implements PersistenceResolver
      */
     public function resolve_column_names($object): array
     {
-        return $this->resolve_associations($object, function($property) {
+        return $this->resolve_associations($object, function(ReflectionProperty $property) {
             yield $property->getName() => $this->get_column_name_of($property);
         });
     }
